@@ -36,24 +36,27 @@ model <- function(Nspecies, time){
   for(t in 2:time){
     for(i in 1:Nspecies){
       
-      if (i != Nspecies){
-        spp <- seq(i+1, Nspecies, 1)
-        leftover <- (Nspecies-1) - (length(spp))
-        if (leftover == 0) {
-          spp <- spp
-        }
-        else{
-          spp2 <- seq(1, leftover, 1)
-          spp <- c(spp, spp2)
-        }
-         
-      }
-      else{
-        spp <- seq(1, (Nspecies-1), 1)
-      }
+#       if (i != Nspecies){
+#         spp <- seq(i+1, Nspecies, 1)
+#         leftover <- (Nspecies-1) - (length(spp))
+#         if (leftover == 0) {
+#           spp <- spp
+#         }
+#         else{
+#           spp2 <- seq(1, leftover, 1)
+#           spp <- c(spp, spp2)
+#         }
+#          
+#       }
+#       else{
+#         spp <- seq(1, (Nspecies-1), 1)
+#       }
+#       
+      n.seq = seq(1, Nspecies, 1)
+      n.index = n.seq[n.seq!=i]
       
       for(j in 1:(Nspecies-1)){
-        comp.spp[i,j] <- ((beta[i,spp[j]] * N[t-1,spp[j]])/K[spp[j]])
+        comp.spp[i,j] <- ((beta[i,j] * N[t-1,n.index[j]])/K[n.index[j]])
       }
       sum.comp[i] <- sum(comp.spp[i,])
       whitevar <- rnorm(1, mean=0)
@@ -63,7 +66,7 @@ model <- function(Nspecies, time){
       N[t, i] <- N[t-1, i] + N[t-1, i] * r[t, i]
     }
     
-    Ntot[t] = sum(N1[t,])
+    Ntot[t] = sum(N[t,])
   }
   
   population <- matrix(ncol=Nspecies, nrow=time)
@@ -72,5 +75,24 @@ model <- function(Nspecies, time){
 }
 
 
-two.species <- model(Nspecies=2, time=100)
+
+years = 600
+N = 3
+two.species <- model(Nspecies=N, time=years)
+
+
+t = seq(100,years,1)
+N1 = two.species[100:years,1] 
+N2 = two.species[100:years,2] 
+Ntot = two.species[100:years,3]
+
+min1 = min(N1)
+min2 = min(N2)
+ymin = min(N1, N2)
+
+plot(t, Ntot, type="l", ylim=c(ymin+500, max(Ntot)+500))
+lines(t, N1, col="blue")
+lines(t, N2, col="red")
+
+
 
