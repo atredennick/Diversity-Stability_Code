@@ -25,9 +25,11 @@ model <- function(Nspecies, time){
     N[1,i] <- rnorm(1, K[i], 500)
     
     for (j in 1:(Nspecies-1)){
-      rand.mean <- round(runif(1, 0.1, 0.9), 1)
+      rand.mean <- round(runif(1, 0, 0.05), 1)
       beta[i,j] <- rnorm(1, rand.mean, 0.02)
     }
+  
+    beta[2:Nspecies,1] <- 0.4
     
   }
   
@@ -76,23 +78,10 @@ model <- function(Nspecies, time){
 
 
 
-years = 600
-N = 3
+years = 1100
+N = 32
 two.species <- model(Nspecies=N, time=years)
 
-
-t = seq(100,years,1)
-N1 = two.species[100:years,1] 
-N2 = two.species[100:years,2] 
-Ntot = two.species[100:years,3]
-
-min1 = min(N1)
-min2 = min(N2)
-ymin = min(N1, N2)
-
-plot(t, Ntot, type="l", ylim=c(ymin+500, max(Ntot)+500))
-lines(t, N1, col="blue")
-lines(t, N2, col="red")
-
-
-
+Ntot = two.species[100:years,ncol(two.species)]
+cv = sd(Ntot)/mean(Ntot)
+cv
