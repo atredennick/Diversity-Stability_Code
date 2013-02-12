@@ -78,10 +78,48 @@ model <- function(Nspecies, time){
 
 
 
-years = 1100
-N = 32
-two.species <- model(Nspecies=N, time=years)
+years = 2100
+N.sim = c(2,4,8,16,32)
+cv = matrix(ncol=length(N.sim), nrow=100)
 
-Ntot = two.species[100:years,ncol(two.species)]
-cv = sd(Ntot)/mean(Ntot)
-cv
+for(i in 1:length(N.sim)){
+  for(j in 1:100){
+    two.species <- model(Nspecies=N.sim[i], time=years)
+    Ntot = two.species[1100:years,ncol(two.species)]
+    cv[j,i] = mean(Ntot)/sd(Ntot)
+  }
+  
+}
+
+
+cv = cv[complete.cases(cv),]
+
+N = matrix(ncol=5, nrow=length(cv[,1]))
+N[,1]=2
+N[,2]=4
+N[,3]=8
+N[,4]=16
+N[,5]=32
+plot(N[,1], cv[,1], xlim=c(0,35), pch=21, col="#00000050", cex=0.3,
+     xlab="Number of Species", ylab=expression(paste("Stability (", mu/sigma, ")")))
+points(N[,2], cv[,2], pch=21, col="#00000050", cex=0.3)
+points(N[,3], cv[,3], pch=21, col="#00000050", cex=0.3)
+points(N[,4], cv[,4], pch=21, col="#00000050", cex=0.3)
+points(N[,5], cv[,5], pch=21, col="#00000050", cex=0.3)
+
+
+means = c(mean(cv[,1]), mean(cv[,2]), mean(cv[,3]), mean(cv[,4]), mean(cv[,5]))
+lines(N.sim, means)
+
+points(N.sim[1], mean(cv[,1]), pch=17, col="white", cex=2)
+points(N.sim[1], mean(cv[,1]), pch=17, col="black", cex=1)
+points(N.sim[2], mean(cv[,2]), pch=17, col="white", cex=2)
+points(N.sim[2], mean(cv[,2]), pch=17, col="black", cex=1)
+points(N.sim[3], mean(cv[,3]), pch=17, col="white", cex=2)
+points(N.sim[3], mean(cv[,3]), pch=17, col="black", cex=1)
+points(N.sim[4], mean(cv[,4]), pch=17, col="white", cex=2)
+points(N.sim[4], mean(cv[,4]), pch=17, col="black", cex=1)
+points(N.sim[5], mean(cv[,5]), pch=17, col="white", cex=2)
+points(N.sim[5], mean(cv[,5]), pch=17, col="black", cex=1)
+
+
