@@ -1,5 +1,13 @@
 rm(list=ls())
 
+#set working directory
+# wd = "/Users/atredenn/Documents/Projects/Diversity_Stability/"
+# setwd(wd)
+# getwd()
+
+#for source file
+# "/Users/atredenn/Documents/Projects/Diversity_Stability/Diversity-Stability_Code/LoreauModel_Multi-species.R"
+
 model <- function(Nspecies, time){
   rm = numeric(Nspecies)
   N = matrix(ncol = Nspecies, nrow = time)
@@ -30,6 +38,7 @@ model <- function(Nspecies, time){
     }
   
     beta[2:Nspecies,1] <- 0.4
+    evar[1] <- runif(1, 0.1, 0.2)
     
   }
   
@@ -78,14 +87,15 @@ model <- function(Nspecies, time){
 
 
 
-years = 2100
+years = 10
 N.sim = c(2,4,8,16,32)
-cv = matrix(ncol=length(N.sim), nrow=100)
+sims = 10
+cv = matrix(ncol=length(N.sim), nrow=sims)
 
 for(i in 1:length(N.sim)){
-  for(j in 1:100){
+  for(j in 1:sims){
     two.species <- model(Nspecies=N.sim[i], time=years)
-    Ntot = two.species[1100:years,ncol(two.species)]
+    Ntot = two.species[1:years,ncol(two.species)]
     cv[j,i] = mean(Ntot)/sd(Ntot)
   }
   
@@ -94,14 +104,22 @@ for(i in 1:length(N.sim)){
 
 cv = cv[complete.cases(cv),]
 
+write.csv(cv, "stability_simulations.csv")
+
+
 N = matrix(ncol=5, nrow=length(cv[,1]))
 N[,1]=2
 N[,2]=4
 N[,3]=8
 N[,4]=16
 N[,5]=32
-plot(N[,1], cv[,1], xlim=c(0,35), pch=21, col="#00000050", cex=0.3,
-     xlab="Number of Species", ylab=expression(paste("Stability (", mu/sigma, ")")))
+# N=log(N)
+plot(N[,1], cv[,1], xlim=c(min(N)-0.4,max(N)+0.4), pch=21, col="#00000050", cex=0.3,
+     xlab="Number of Species", ylab=expression(paste("Stability (", mu/sigma, ")")),
+     ylim = c(min(cv), max(cv)), axes=FALSE)
+axis(1, at=N[1,], labels=c("2", "4", "8", "16", "32"), cex.axis=0.8)
+axis(2)
+box()
 points(N[,2], cv[,2], pch=21, col="#00000050", cex=0.3)
 points(N[,3], cv[,3], pch=21, col="#00000050", cex=0.3)
 points(N[,4], cv[,4], pch=21, col="#00000050", cex=0.3)
@@ -109,17 +127,30 @@ points(N[,5], cv[,5], pch=21, col="#00000050", cex=0.3)
 
 
 means = c(mean(cv[,1]), mean(cv[,2]), mean(cv[,3]), mean(cv[,4]), mean(cv[,5]))
-lines(N.sim, means)
+lines(N[1,], means, col="red")
 
-points(N.sim[1], mean(cv[,1]), pch=17, col="white", cex=2)
-points(N.sim[1], mean(cv[,1]), pch=17, col="black", cex=1)
-points(N.sim[2], mean(cv[,2]), pch=17, col="white", cex=2)
-points(N.sim[2], mean(cv[,2]), pch=17, col="black", cex=1)
-points(N.sim[3], mean(cv[,3]), pch=17, col="white", cex=2)
-points(N.sim[3], mean(cv[,3]), pch=17, col="black", cex=1)
-points(N.sim[4], mean(cv[,4]), pch=17, col="white", cex=2)
-points(N.sim[4], mean(cv[,4]), pch=17, col="black", cex=1)
-points(N.sim[5], mean(cv[,5]), pch=17, col="white", cex=2)
-points(N.sim[5], mean(cv[,5]), pch=17, col="black", cex=1)
+points(N[1,1], mean(cv[,1]), pch=17, col="white", cex=2)
+points(N[1,1], mean(cv[,1]), pch=17, col="red", cex=1)
+points(N[1,2], mean(cv[,2]), pch=17, col="white", cex=2)
+points(N[1,2], mean(cv[,2]), pch=17, col="red", cex=1)
+points(N[1,3], mean(cv[,3]), pch=17, col="white", cex=2)
+points(N[1,3], mean(cv[,3]), pch=17, col="red", cex=1)
+points(N[1,4], mean(cv[,4]), pch=17, col="white", cex=2)
+points(N[1,4], mean(cv[,4]), pch=17, col="red", cex=1)
+points(N[1,5], mean(cv[,5]), pch=17, col="white", cex=2)
+points(N[1,5], mean(cv[,5]), pch=17, col="red", cex=1)
 
 
+
+cv.long = as.vector(cv)
+spp = c(rep(N.sim[1], length(cv[,1])),
+      rep(N.sim[2], length(cv[,1])),
+      rep(N.sim[3], length(cv[,1])),
+      rep(N.sim[4], length(cv[,1])),
+      rep(N.sim[5], length(cv[,1])))
+
+mod <- lm(cv.long ~ spp)
+summary(mod)
+pred = predict(mod)
+pred = unique(pred)
+lines(N[1,], pred)
