@@ -55,6 +55,9 @@ spp = c(rep(N.sim[1], length(cv.lo[,1])),
         rep(N.sim[4], length(cv.lo[,1])),
         rep(N.sim[5], length(cv.lo[,1])))
 
+mod12 <- lm(cv.lo.long[1:length(cv.lo[,2])*2] ~ spp[1:length(cv.lo[,2])*2])
+summary(mod12)
+
 mod <- lm(cv.lo.long ~ spp)
 summary(mod)
 pred = predict(mod)
@@ -99,6 +102,10 @@ spp = c(rep(N.sim[1], length(cv.hi[,1])),
         rep(N.sim[3], length(cv.hi[,1])),
         rep(N.sim[4], length(cv.hi[,1])),
         rep(N.sim[5], length(cv.hi[,1])))
+
+
+mod12 <- lm(cv.hi.long[1:length(cv.hi[,2])*2] ~ spp[1:length(cv.hi[,2])*2])
+summary(mod12)
 
 mod <- lm(cv.hi.long ~ spp)
 summary(mod)

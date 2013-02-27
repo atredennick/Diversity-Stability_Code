@@ -5,7 +5,7 @@ model <- function(rm1, rm2, rm3,
                   K1, K2, K3,
                   evar1, evar2, evar3,
                   dvar1, dvar2, dvar3,
-                  beat12, beta13, beta21, beta23, beta31, beta32,
+                  beta12, beta13, beta21, beta23, beta31, beta32,
                   time){
   r1 = numeric(time)
   r2 = numeric(time)
@@ -24,7 +24,8 @@ model <- function(rm1, rm2, rm3,
     #   whitevar1 <- rnorm(1, mean=0)
     whitevar2 <- rnorm(1, mean=0)
     whitevar1 <- rnorm(1,mean=whitevar2)
-    whitevar3 <- -1*rnorm(1, mean=whitevar1)
+#     whitevar3 <- -1*rnorm(1, mean=whitevar1)
+    whitevar3 <- rnorm(1, mean=whitevar1)
     dnoise1 <- rnorm(1, mean=0)
     dnoise2 <- rnorm(1, mean=0)
     dnoise3 <- rnorm(1, mean=0)
@@ -88,7 +89,7 @@ model.null <- model(rm1, rm2, rm3,
                     K1, K2, K3,
                     evar1, evar2, evar3,
                     dvar1, dvar2, dvar3,
-                    beat12, beta13, beta21, beta23, beta31, beta32,
+                    beta12, beta13, beta21, beta23, beta31, beta32,
                     time)
 
 N1 <- model.null[,1]
@@ -133,32 +134,34 @@ evar1 = 0.02
 evar2 = seq(0.01,0.2, 0.02)
 evar3 = 0.02
 dvar1 = 1
-dvar2 = seq(0.1, 1, 0.1)
+dvar2 = 1
+# dvar2 = seq(0.1, 1, 0.1)
 dvar3 = 1
-beta12 = 0.8
+beta12 = c(0.1, 0.3, 0.5, 0.7)
 beta13 = 0.08
 beta21 = 0.1
 beta23 = 0.08
 beta31 = 0.1
 beta32 = beta12
 
-time = 600
+time = 10000
 
 
 N1.start <- 200
 N2.start <- 1300
 N3.start <- 500
 
-cv.tot.store = matrix(nrow=length(evar2), ncol=length(dvar2))
+cv.tot.store = matrix(ncol=length(beta12), nrow=length(evar2))
 
-for(j in 1:length(dvar2)){
+for(j in 1:length(beta12)){
   for(i in 1:length(evar2)){
     model.null <- model(rm1, rm2, rm3, 
                         N1.start, N2.start, N3.start, 
                         K1, K2, K3,
                         evar1, evar2[i], evar3,
-                        beat12, beta13, beta21, beta23, beta31, beta32,
-                        time)
+                        dvar1, dvar2, dvar3,
+                        beta12[j], beta13, beta21, beta23, beta31, beta32[j],
+                        time=time)
     
     N1 <- model.null[,1]
     N2 <- model.null[,2]
@@ -171,10 +174,10 @@ for(j in 1:length(dvar2)){
   }
 }
 
-
-plot(evar2, cv.tot.store, type="l")
-points(evar2, cv.tot.store, pch=21, col="white", bg="white", cex=2)
-points(evar2, cv.tot.store, pch=21, col="black", bg="white", cex=1)
+# 
+# plot(evar2, cv.tot.store, type="l")
+# points(evar2, cv.tot.store, pch=21, col="white", bg="white", cex=2)
+# points(evar2, cv.tot.store, pch=21, col="black", bg="white", cex=1)
 
 matplot(evar2, cv.tot.store, type="l", lwd=2, col=c("black", "grey35", "grey50", "grey75"),
         xlim=c(0,0.25), lty="solid", ylab="Coefficient of Variation", 
@@ -183,10 +186,89 @@ matplot(evar2, cv.tot.store, type="l", lwd=2, col=c("black", "grey35", "grey50",
 matplot(evar2, cv.tot.store, add=TRUE, pch=21, col="white", bg="white", cex=1.5)
 matplot(evar2, cv.tot.store, add=TRUE, pch=21, col=c("black", "grey35", "grey50", "grey75"),
         bg="white", cex=0.8)
-labs = c(expression(paste(beta[i2], " = 0.1")),
-         expression(paste(beta[i2], " = 0.3")),
-         expression(paste(beta[i2], " = 0.5")),
-         expression(paste(beta[i2], " = 0.7")))
+labs = c(expression(paste(beta[i1], " = 0.1")),
+         expression(paste(beta[i1], " = 0.3")),
+         expression(paste(beta[i1], " = 0.5")),
+         expression(paste(beta[i1], " = 0.7")))
 text(c(0.225), y=c(cv.tot.store[10,1], cv.tot.store[10,2], 
                    cv.tot.store[10,3], cv.tot.store[10,4]),
      labs, cex=0.8)
+
+
+
+
+
+
+#Run model with dvar vector
+rm1 = 0.5
+rm2 = 0.8
+rm3 = 0.6
+K1 = 1000
+K2 = 1500
+K3 = 1000
+evar1 = 0.02
+evar2 = 0.02
+evar3 = 0.02
+dvar1 = 1
+# dvar2 = 1
+dvar2 = seq(0.1, 2, 0.2)
+dvar3 = 1
+beta12 = c(0.1, 0.3, 0.5, 0.7)
+beta13 = 0.08
+beta21 = 0.1
+beta23 = 0.08
+beta31 = 0.1
+beta32 = beta12
+
+time = 10000
+
+
+N1.start <- 200
+N2.start <- 1300
+N3.start <- 500
+
+cv.tot.store = matrix(ncol=length(beta12), nrow=length(dvar2))
+
+for(j in 1:length(beta12)){
+  for(i in 1:length(dvar2)){
+    model.null <- model(rm1, rm2, rm3, 
+                        N1.start, N2.start, N3.start, 
+                        K1, K2, K3,
+                        evar1, evar2, evar3,
+                        dvar1, dvar2[i], dvar3,
+                        beta12[j], beta13, beta21, beta23, beta31, beta32[j],
+                        time=time)
+    
+    N1 <- model.null[,1]
+    N2 <- model.null[,2]
+    N3 <- model.null[,3]
+    Ntot <- model.null[,4]
+    
+    cv.tot = sd(Ntot)/mean(Ntot)
+    cv.tot.store[i,j]  = cv.tot
+    
+  }
+}
+
+# 
+# plot(evar2, cv.tot.store, type="l")
+# points(evar2, cv.tot.store, pch=21, col="white", bg="white", cex=2)
+# points(evar2, cv.tot.store, pch=21, col="black", bg="white", cex=1)
+
+matplot(dvar2, cv.tot.store, type="l", lwd=2, col=c("black", "grey35", "grey50", "grey75"),
+        xlim=c(0,2.4), lty="solid", ylab="Coefficient of Variation", 
+        xlab="Demographic Variability of Dominant Species",
+        cex.lab=0.8, cex.axis=0.8, ylim=c(0.02, 0.12))
+matplot(dvar2, cv.tot.store, add=TRUE, pch=21, col="white", bg="white", cex=1.5)
+matplot(dvar2, cv.tot.store, add=TRUE, pch=21, col=c("black", "grey35", "grey50", "grey75"),
+        bg="white", cex=0.8)
+labs = c(expression(paste(beta[i1], " = 0.1")),
+         expression(paste(beta[i1], " = 0.3")),
+         expression(paste(beta[i1], " = 0.5")),
+         expression(paste(beta[i1], " = 0.7")))
+text(c(2.225), y=c(cv.tot.store[10,1]-0.005, cv.tot.store[10,2], 
+                   cv.tot.store[10,3], cv.tot.store[10,4]),
+     labs, cex=0.8)
+
+
+

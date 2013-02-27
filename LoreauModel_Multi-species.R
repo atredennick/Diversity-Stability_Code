@@ -104,6 +104,17 @@ for(i in 1:length(N.sim)){
 
 cv = cv[complete.cases(cv),]
 
+
+
+
+
+
+
+
+
+
+
+
 write.csv(cv, "stability_simulations.csv")
 
 
