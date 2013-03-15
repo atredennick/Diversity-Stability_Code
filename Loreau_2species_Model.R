@@ -25,7 +25,7 @@ model <- function(rm1, rm2,
   for(t in 2:time){
     #   whitevar1 <- rnorm(1, mean=0)
     whitevar2 <- rnorm(1, mean=0)
-    whitevar1 <- rnorm(1,mean=whitevar2)
+    whitevar1 <- rnorm(1,mean=0)
     dnoise1 <- rnorm(1, mean=0)
     dnoise2 <- rnorm(1, mean=0)
     
@@ -65,8 +65,8 @@ beta21 = 0
 time = 600
 
 
-N1.start <- 1000
-N2.start <- 1500
+N1.start <- K1
+N2.start <- K2
 
 
 model.null <- model(rm1, rm2, 
@@ -89,21 +89,21 @@ cv.tot
 
 time.plot = seq(1,time,1)
 plot(time.plot, Ntot, type="l", col="grey45", ylim=c(600,3000), ylab="Biomass", xlab="Time")
-lines(time.plot, N1, col="lightblue")
+lines(time.plot, N1, col="steelblue")
 lines(time.plot, N2, col="orange")
 abline(h=mean(Ntot), col="black", lwd=2)
 abline(h=(sd(Ntot)+mean(Ntot)), col="black", lty="dashed")
 abline(h=(mean(Ntot)-sd(Ntot)), col="black", lty="dashed")
 
-abline(h=mean(N1), col="cadetblue", lwd=2)
-abline(h=(sd(N1)+mean(N1)), col="cadetblue", lty="dashed")
-abline(h=(mean(N1)-sd(N1)), col="cadetblue", lty="dashed")
+abline(h=mean(N1), col="steelblue", lwd=2)
+abline(h=(sd(N1)+mean(N1)), col="steelblue", lty="dashed")
+abline(h=(mean(N1)-sd(N1)), col="steelblue", lty="dashed")
 
 abline(h=mean(N2), col="darkorange", lwd=2)
 abline(h=(sd(N2)+mean(N2)), col="darkorange", lty="dashed")
 abline(h=(mean(N2)-sd(N2)), col="darkorange", lty="dashed")
 
-text(100, 3000, paste("c.v. = ", round(cv.tot, 3)))
+text(500, 3000, paste("c.v. = ", round(cv.tot, 3)))
 
 
 
@@ -142,15 +142,15 @@ cv.tot
 
 time.plot = seq(1,time,1)
 plot(time.plot, Ntot, type="l", col="grey45", ylim=c(600,3100), ylab="Biomass", xlab="Time")
-lines(time.plot, N1, col="lightblue")
+lines(time.plot, N1, col="steelblue")
 lines(time.plot, N2, col="orange")
 abline(h=mean(Ntot), col="black", lwd=2)
 abline(h=(sd(Ntot)+mean(Ntot)), col="black", lty="dashed")
 abline(h=(mean(Ntot)-sd(Ntot)), col="black", lty="dashed")
 
-abline(h=mean(N1), col="cadetblue", lwd=2)
-abline(h=(sd(N1)+mean(N1)), col="cadetblue", lty="dashed")
-abline(h=(mean(N1)-sd(N1)), col="cadetblue", lty="dashed")
+abline(h=mean(N1), col="steelblue", lwd=2)
+abline(h=(sd(N1)+mean(N1)), col="steelblue", lty="dashed")
+abline(h=(mean(N1)-sd(N1)), col="steelblue", lty="dashed")
 
 abline(h=mean(N2), col="darkorange", lwd=2)
 abline(h=(sd(N2)+mean(N2)), col="darkorange", lty="dashed")
@@ -273,15 +273,15 @@ rm2 = 0.8
 K1 = 1000
 K2 = 1500
 evar1 = 0.02
-evar2 = 0.02
+evar2 = 0.1
 dvar1 = 1
 dvar2 = 1
-beta12 = 0.8
-beta21 = 0.2
+beta12 = 0.4
+beta21 = 0.1
 time = 600
 
 
-N1.start <- 200
+N1.start <- 600
 N2.start <- 1300
 
 

@@ -23,9 +23,9 @@ model <- function(rm1, rm2, rm3,
   for(t in 2:time){
     #   whitevar1 <- rnorm(1, mean=0)
     whitevar2 <- rnorm(1, mean=0)
-    whitevar1 <- rnorm(1,mean=whitevar2)
+    whitevar1 <- rnorm(1, mean=0)
 #     whitevar3 <- -1*rnorm(1, mean=whitevar1)
-    whitevar3 <- rnorm(1, mean=whitevar1)
+    whitevar3 <- rnorm(1, mean=0)
     dnoise1 <- rnorm(1, mean=0)
     dnoise2 <- rnorm(1, mean=0)
     dnoise3 <- rnorm(1, mean=0)
@@ -64,24 +64,24 @@ K1 = 1000
 K2 = 1500
 K3 = 1000
 evar1 = 0.02
-evar2 = 0.02
+evar2 = 0.1
 evar3 = 0.02
 dvar1 = 1
 dvar2 = 1
 dvar3 = 1
-beta12 = 0.8
+beta12 = 0.4
 beta13 = 0.08
-beta21 = 0.1
+beta21 = 0.08
 beta23 = 0.08
-beta31 = 0.1
-beta32 = 0.7
+beta31 = 0.08
+beta32 = 0.4
 
 time = 600
 
 
-N1.start <- 200
+N1.start <- 560
 N2.start <- 1300
-N3.start <- 500
+N3.start <- 900
 
 
 model.null <- model(rm1, rm2, rm3, 
@@ -101,7 +101,7 @@ cv.tot = sd(Ntot)/mean(Ntot)
 cv.tot
 
 time.plot = seq(1,time,1)
-plot(time.plot, Ntot, type="l", col="grey45", ylim=c(200,3000), ylab="Biomass", xlab="Time")
+plot(time.plot, Ntot, type="l", col="grey45", ylim=c(200,3500), ylab="Biomass", xlab="Time")
 lines(time.plot, N1, col="steelblue")
 lines(time.plot, N2, col="orange")
 lines(time.plot, N3, col="purple")
@@ -120,7 +120,7 @@ abline(h=(mean(N2)-sd(N2)), col="darkorange", lty="dashed")
 abline(h=mean(N3), col="purple4", lwd=2)
 abline(h=(sd(N3)+mean(N3)), col="purple4", lty="dashed")
 abline(h=(mean(N3)-sd(N3)), col="purple4", lty="dashed")
-text(100,3000,paste("c.v. = ", round(cv.tot,3)))
+text(100,3500,paste("c.v. = ", round(cv.tot,3)))
 
 
 #Run model with evar vector
