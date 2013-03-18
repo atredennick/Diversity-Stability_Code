@@ -47,24 +47,47 @@ data.az <- rbind(points, polys)
 data.az <- data.az[order(data.az$quad, data.az$year),]
 names(data.az)
 
-data.az <- data.az[data.az$Area != 0,]
-
+# data.az <- data.az[data.az$Area != 0,]
 
 df.agg.az <- ddply(data.az, .(quad, year, Species), summarise, 
-                   sum = sum(Area)
+                   sum = sum(Area),
+                   numspecies = length(Species)
 )
 
 df.spp.az <- ddply(df.agg.az, .(quad, year), summarise,
                    sum = sum(sum),
-                   spp = length(Species)
+                   spp = length(Species),
+                   quadspp = sum(numspecies)
 )
+
+quad.names <- unique(df.spp.az$quad)
+quadyears.simpson <- matrix(ncol=length(quad.names), nrow=20)
+for (i in 1:length(quad.names)){
+  index <- which(df.agg.az$quad == quad.names[i])
+  data.now <- df.agg.az[index,]
+  years <- unique(data.now$year)
+ 
+  for (j in 1:length(years)){
+    index.year <- which(data.now$year == years[j])
+    data.year <- data.now[index.year,]
+    
+    simps.start <- data.year$numspecies/sum(data.year$numspecies) 
+    quadyears.simpson[j,i] <- sum(simps.start^2)
+  }
+}
+
+quadyears.simpson <- c(quadyears.simpson)
+quadyears.simpson <- quadyears.simpson[!is.na(quadyears.simpson)]
+df.spp.az$simpson <- quadyears.simpson
 
 df.cv.az <- ddply(df.spp.az, .(quad), summarise,
                   cv = mean(sum)/sd(sum),
-                  spp = mean(spp)
+                  spp = mean(spp),
+                  simp = mean(1-simpson)
 )
 
-plot(df.cv.az$spp, df.cv.az$cv, xlab="Average Species Richness", main="Arizona (all data)",
+par(mfrow=c(3,1), tck=-0.02, mgp=c(1.5,0.5,0), las=1)
+plot(df.cv.az$spp, df.cv.az$cv, xlab="Average Species Richness", main="Arizona",
      ylab=expression(paste("Cover Stability (", mu/sigma, ")")), cex=0.5, ylim=c(0,4))
 x = df.cv.az$spp
 y = df.cv.az$cv
@@ -78,7 +101,7 @@ lines(newx, pred[,1], lwd=2)
 # lines(newx, pred[,3], lwd=2, lty="dashed", col="steelblue")
 text(1.7,4, "Neutral",font=4, col="darkorange")
 
-##Arizona POLYGON only data##
+# #Arizona POLYGON only data##
 # data.az <- polys
 # data.az <- data.az[order(data.az$quad, data.az$year),]
 # names(data.az)
@@ -112,7 +135,7 @@ text(1.7,4, "Neutral",font=4, col="darkorange")
 # lines(newx, pred[,2], lty="dashed", lwd=2, col="steelblue")
 # lines(newx, pred[,3], lty="dashed", lwd=2, col="steelblue")
 # text(1.4,4, "Positive",font=4, col="steelblue")
-# 
+
 
 
 
@@ -162,7 +185,7 @@ df.cv.mt <- ddply(df.spp.mt, .(quad), summarise,
                   spp = mean(spp)
 )
 
-plot(df.cv.mt$spp, df.cv.mt$cv, xlab="Average Species Richness", main="Montana (all data)",
+plot(df.cv.mt$spp, df.cv.mt$cv, xlab="Average Species Richness", main="Montana",
      ylab=expression(paste("Cover Stability (", mu/sigma, ")")), cex=0.5, ylim=c(0,5))
 x = df.cv.mt$spp
 y = df.cv.mt$cv
@@ -171,7 +194,7 @@ summary(model)
 newx <- seq(min(df.cv.mt$spp), max(df.cv.mt$spp), 0.5)
 pred <- predict(model, newdata=data.frame(x=newx), interval=c("confidence"), 
                 level=0.95, type="response")
-lines(newx, pred[,1], lwd=2, col="darkorange")
+lines(newx, pred[,1], lwd=2)
 text(2.5,5, "Neutral",font=4, col="darkorange")
 
 
@@ -258,7 +281,7 @@ df.cv.id <- ddply(df.spp.id, .(quad), summarise,
                   spp = mean(spp)
 )
 
-plot(df.cv.id$spp, df.cv.id$cv, xlab="Average Species Richness", main="Idaho (all data)",
+plot(df.cv.id$spp, df.cv.id$cv, xlab="Average Species Richness", main="Idaho",
      ylab=expression(paste("Cover Stability (", mu/sigma, ")")), cex=0.5, ylim=c(0,4))
 x = df.cv.id$spp
 y = df.cv.id$cv
