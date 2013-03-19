@@ -86,9 +86,10 @@ df.cv.az <- ddply(df.spp.az, .(quad), summarise,
                   simp = mean(1-simpson)
 )
 
-par(mfrow=c(3,1), tck=-0.02, mgp=c(1.5,0.5,0), las=1)
-plot(df.cv.az$spp, df.cv.az$cv, xlab="Average Species Richness", main="Arizona",
-     ylab=expression(paste("Cover Stability (", mu/sigma, ")")), cex=0.5, ylim=c(0,4))
+par(mfrow=c(3,2), tck=-0.02, mgp=c(2.5,0.7,0), las=1, mar=c(5.1, 4.5, 2, 2.1))
+plot(df.cv.az$spp, df.cv.az$cv, xlab="", main="",
+     ylab=expression(paste("Cover Stability (", mu/sigma, ")")), cex=0.5, ylim=c(0,4),
+     cex.lab=1.5)
 x = df.cv.az$spp
 y = df.cv.az$cv
 model <- lm(y ~ x)
@@ -100,6 +101,22 @@ lines(newx, pred[,1], lwd=2)
 # lines(newx, pred[,2], lwd=2, lty="dashed", col="steelblue")
 # lines(newx, pred[,3], lwd=2, lty="dashed", col="steelblue")
 text(1.7,4, "Neutral",font=4, col="darkorange")
+
+plot(df.cv.az$simp, df.cv.az$cv, xlab="", main="",
+     ylab=expression(paste("Cover Stability (", mu/sigma, ")")), cex=0.5, 
+     ylim=c(0,4), xlim=c(0,1), cex.lab=1.5)
+x = df.cv.az$simp
+y = df.cv.az$cv
+model <- lm(y ~ x)
+summary(model)
+newx <- seq(min(df.cv.az$simp), max(df.cv.az$simp), 0.05)
+pred <- predict(model, newdata=data.frame(x=newx), interval=c("confidence"), 
+                level=0.95, type="response")
+lines(newx, pred[,1], lwd=2)
+# lines(newx, pred[,2], lwd=2, lty="dashed", col="steelblue")
+# lines(newx, pred[,3], lwd=2, lty="dashed", col="steelblue")
+text(0.1,4, "Neutral",font=4, col="darkorange")
+
 
 # #Arizona POLYGON only data##
 # data.az <- polys
@@ -172,21 +189,45 @@ names(data.mt)
 data.mt <- data.mt[data.mt$Area != 0,]
 
 df.agg.mt <- ddply(data.mt, .(quad, year, Species), summarise, 
-                   sum = sum(Area)
+                   sum = sum(Area),
+                   numspecies = length(Species)
 )
 
 df.spp.mt <- ddply(df.agg.mt, .(quad, year), summarise,
                    sum = sum(sum),
-                   spp = length(Species)
+                   spp = length(Species),
+                   quadspp = sum(numspecies)
 )
+
+quad.names <- unique(df.spp.mt$quad)
+quadyears.simpson <- matrix(ncol=length(quad.names), nrow=20)
+for (i in 1:length(quad.names)){
+  index <- which(df.agg.mt$quad == quad.names[i])
+  data.now <- df.agg.mt[index,]
+  years <- unique(data.now$year)
+  
+  for (j in 1:length(years)){
+    index.year <- which(data.now$year == years[j])
+    data.year <- data.now[index.year,]
+    
+    simps.start <- data.year$numspecies/sum(data.year$numspecies) 
+    quadyears.simpson[j,i] <- sum(simps.start^2)
+  }
+}
+
+quadyears.simpson <- c(quadyears.simpson)
+quadyears.simpson <- quadyears.simpson[!is.na(quadyears.simpson)]
+df.spp.mt$simpson <- quadyears.simpson
 
 df.cv.mt <- ddply(df.spp.mt, .(quad), summarise,
                   cv = mean(sum)/sd(sum),
-                  spp = mean(spp)
+                  spp = mean(spp),
+                  simp = mean(1-simpson)
 )
 
-plot(df.cv.mt$spp, df.cv.mt$cv, xlab="Average Species Richness", main="Montana",
-     ylab=expression(paste("Cover Stability (", mu/sigma, ")")), cex=0.5, ylim=c(0,5))
+plot(df.cv.mt$spp, df.cv.mt$cv, xlab="", main="",
+     ylab=expression(paste("Cover Stability (", mu/sigma, ")")), cex=0.5, ylim=c(0,5),
+     cex.lab=1.5)
 x = df.cv.mt$spp
 y = df.cv.mt$cv
 model <- lm(y ~ x)
@@ -196,6 +237,24 @@ pred <- predict(model, newdata=data.frame(x=newx), interval=c("confidence"),
                 level=0.95, type="response")
 lines(newx, pred[,1], lwd=2)
 text(2.5,5, "Neutral",font=4, col="darkorange")
+
+plot(df.cv.mt$simp, df.cv.mt$cv, xlab="", main="",
+     ylab=expression(paste("Cover Stability (", mu/sigma, ")")), cex=0.5, 
+     ylim=c(0,4), xlim=c(0,1), cex.lab=1.5)
+x = df.cv.mt$simp
+y = df.cv.mt$cv
+model <- lm(y ~ x)
+summary(model)
+newx <- seq(min(df.cv.mt$simp), max(df.cv.mt$simp), 0.05)
+pred <- predict(model, newdata=data.frame(x=newx), interval=c("confidence"), 
+                level=0.95, type="response")
+lines(newx, pred[,1], lwd=2)
+lines(newx, pred[,2], lwd=2, lty="dashed")
+lines(newx, pred[,3], lwd=2, lty="dashed")
+# lines(newx, pred[,2], lwd=2, lty="dashed", col="steelblue")
+# lines(newx, pred[,3], lwd=2, lty="dashed", col="steelblue")
+text(0.18,3.95, "Weak Negative",font=4, col="red")
+
 
 
 # ###PERRENNIAL MONTANA DATA###
@@ -268,21 +327,46 @@ names(data.id)
 data.id <- data.id[data.id$area != 0,]
 
 df.agg.id <- ddply(data.id, .(quad, year, species), summarise, 
-                   sum = sum(area)
+                   sum = sum(area),
+                   numspecies = length(species)
 )
 
 df.spp.id <- ddply(df.agg.id, .(quad, year), summarise,
                    sum = sum(sum),
-                   spp = length(species)
+                   spp = length(species),
+                   quadspp = sum(numspecies)
 )
+
+quad.names <- unique(df.spp.id$quad)
+quadyears.simpson <- matrix(ncol=length(quad.names), nrow=30)
+for (i in 1:length(quad.names)){
+  index <- which(df.agg.id$quad == quad.names[i])
+  data.now <- df.agg.id[index,]
+  years <- unique(data.now$year)
+  
+  for (j in 1:length(years)){
+    index.year <- which(data.now$year == years[j])
+    data.year <- data.now[index.year,]
+    
+    simps.start <- data.year$numspecies/sum(data.year$numspecies) 
+    quadyears.simpson[j,i] <- sum(simps.start^2)
+  }
+}
+
+quadyears.simpson <- c(quadyears.simpson)
+quadyears.simpson <- quadyears.simpson[!is.na(quadyears.simpson)]
+df.spp.id$simpson <- quadyears.simpson
 
 df.cv.id <- ddply(df.spp.id, .(quad), summarise,
                   cv = mean(sum)/sd(sum),
-                  spp = mean(spp)
+                  spp = mean(spp),
+                  simp = mean(1-simpson)
 )
 
-plot(df.cv.id$spp, df.cv.id$cv, xlab="Average Species Richness", main="Idaho",
-     ylab=expression(paste("Cover Stability (", mu/sigma, ")")), cex=0.5, ylim=c(0,4))
+
+plot(df.cv.id$spp, df.cv.id$cv, xlab="Average species Richness", main="",
+     ylab=expression(paste("Cover Stability (", mu/sigma, ")")), cex=0.5, ylim=c(0,4),
+     cex.lab=1.5)
 x = df.cv.id$spp
 y = df.cv.id$cv
 model <- lm(y ~ x)
@@ -294,6 +378,21 @@ lines(newx, pred[,1], lwd=2)
 lines(newx, pred[,2], lwd=2, lty="dashed")
 lines(newx, pred[,3], lwd=2, lty="dashed")
 text(10,3.9, "Positive",font=4, col="steelblue")
+
+plot(df.cv.id$simp, df.cv.id$cv, xlab="Simpson's Diversity", main="",
+     ylab=expression(paste("Cover Stability (", mu/sigma, ")")), cex=0.5, 
+     ylim=c(0,4), xlim=c(0,1), cex.lab=1.5)
+x = df.cv.id$simp
+y = df.cv.id$cv
+model <- lm(y ~ x)
+summary(model)
+newx <- seq(min(df.cv.id$simp), max(df.cv.id$simp), 0.05)
+pred <- predict(model, newdata=data.frame(x=newx), interval=c("confidence"), 
+                level=0.95, type="response")
+lines(newx, pred[,1], lwd=2)
+lines(newx, pred[,2], lwd=2, lty="dashed")
+lines(newx, pred[,3], lwd=2, lty="dashed")
+text(0.18,3.95, "Weak Positive",font=4, col="steelblue")
 
 
 # ###POLYGON IDAHO DATA ANALYSIS###
