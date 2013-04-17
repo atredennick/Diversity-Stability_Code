@@ -28,7 +28,7 @@ points <- subset(pointdata.az, select=c(quad, year, Species, Canopy_cov))
 
 #apply average cover values to all records according to spcecies ID
 #first apply blanket average to account for all non-measured species
-tot.avg <- mean(avg.cov.points[,2])
+# tot.avg <- mean(avg.cov.points[,2])
 # points$Canopy_cov <- tot.avg
 points$Canopy_cov <- abs(rnorm(length(points$Canopy_cov), 0, 1))
 
@@ -47,6 +47,8 @@ data.az <- rbind(points, polys)
 data.az <- data.az[order(data.az$quad, data.az$year),]
 names(data.az)
 
+# data.az$Area <- rnorm(length(data.az$Area), 0, 1)
+data.az$Area <- 1
 # data.az <- data.az[data.az$Area != 0,]
 
 df.agg.az <- ddply(data.az, .(quad, year, Species), summarise, 
@@ -88,7 +90,7 @@ df.cv.az <- ddply(df.spp.az, .(quad), summarise,
 
 par(mfrow=c(3,2), tck=-0.02, mgp=c(2.5,0.7,0), las=1, mar=c(5.1, 4.5, 2, 2.1))
 plot(df.cv.az$spp, df.cv.az$cv, xlab="", main="",
-     ylab=expression(paste("Cover Stability (", mu/sigma, ")")), cex=0.5, ylim=c(0,4),
+     ylab=expression(paste("Cover Stability (", mu/sigma, ")")), cex=0.5, ylim=c(0,9),
      cex.lab=1.5)
 x = df.cv.az$spp
 y = df.cv.az$cv
@@ -104,7 +106,7 @@ text(1.7,4, "Neutral",font=4, col="darkorange")
 
 plot(df.cv.az$simp, df.cv.az$cv, xlab="", main="",
      ylab=expression(paste("Cover Stability (", mu/sigma, ")")), cex=0.5, 
-     ylim=c(0,4), xlim=c(0,1), cex.lab=1.5)
+     ylim=c(-5,5), xlim=c(0,1), cex.lab=1.5)
 x = df.cv.az$simp
 y = df.cv.az$cv
 model <- lm(y ~ x)
@@ -115,7 +117,7 @@ pred <- predict(model, newdata=data.frame(x=newx), interval=c("confidence"),
 lines(newx, pred[,1], lwd=2)
 # lines(newx, pred[,2], lwd=2, lty="dashed", col="steelblue")
 # lines(newx, pred[,3], lwd=2, lty="dashed", col="steelblue")
-text(0.1,4, "Neutral",font=4, col="darkorange")
+text(0.2,9, "Weak Positive",font=4, col="steelblue")
 
 
 # #Arizona POLYGON only data##
@@ -186,7 +188,7 @@ data.mt <- rbind(points.mt, polys.mt)
 data.mt <- data.mt[order(data.mt$quad, data.mt$year),]
 names(data.mt)
 
-data.mt <- data.mt[data.mt$Area != 0,]
+data.mt$Area <- abs(rnorm())
 
 df.agg.mt <- ddply(data.mt, .(quad, year, Species), summarise, 
                    sum = sum(Area),
@@ -321,15 +323,60 @@ polys.id <- subset(polys.id, select=c(quad, year, species, area))
 
 ###ALL IDAHO DATA ANALYSIS###
 data.id <- rbind(points.id, polys.id)
+data.id <- polys.id
 data.id <- data.id[order(data.id$quad, data.id$year),]
 names(data.id)
 
 data.id <- data.id[data.id$area != 0,]
 
+dom.spp <- c("Poa secunda", "Artemisia tripartita", "Hesperostipa comata", "Pseudoroegneria spicata")
+data.poa <- data.id[data.id$species == dom.spp[1],]
+data.art <- data.id[data.id$species == dom.spp[2],]
+data.hes <- data.id[data.id$species == dom.spp[3],]
+data.pse <- data.id[data.id$species == dom.spp[4],]
+
+data.poano <- data.id[data.id$species != dom.spp[1],]
+data.artno <- data.id[data.id$species != dom.spp[2],]
+data.hesno <- data.id[data.id$species != dom.spp[3],]
+data.pseno <- data.id[data.id$species != dom.spp[4],]
+data.id.rare <- rbind(data.poano, data.artno, data.hesno, data.pseno)
+data.id.rare$species <- "rare"
+
+data.id <- rbind(data.poa, data.art, data.hes, data.pse, data.id.rare)
+
+data.id <- data.id[order(data.id$quad, data.id$year),]
+
+
+
 df.agg.id <- ddply(data.id, .(quad, year, species), summarise, 
                    sum = sum(area),
                    numspecies = length(species)
 )
+
+
+q1.df <- ddply(df.agg.id, .(year, species), summarise, 
+               avg = mean(sum),
+               numspecies = mean(numspecies)
+)
+q1.df <- q1.df[q1.df$year != 73,]
+q1.df <- q1.df[q1.df$species != "rare",]
+ggplot(data=q1.df, aes(x=year, y=(avg*100))) + 
+  geom_line(aes(color=species)) +
+  geom_point(color="white", size=3) +
+  geom_point(aes(color=species), size=2) +
+  theme_bw() +
+  xlab("Year (19xx)") + ylab("Mean Cover (%)") +
+  theme(axis.title.x = element_text(size=14),
+        axis.title.y = element_text(size=14, angle=90), 
+        axis.text.x = element_text(size=12), 
+        axis.text.y = element_text(size=12), 
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "right",
+        legend.key = element_blank()   
+  )
+
+
 
 df.spp.id <- ddply(df.agg.id, .(quad, year), summarise,
                    sum = sum(sum),
@@ -358,14 +405,27 @@ quadyears.simpson <- quadyears.simpson[!is.na(quadyears.simpson)]
 df.spp.id$simpson <- quadyears.simpson
 
 df.cv.id <- ddply(df.spp.id, .(quad), summarise,
-                  cv = mean(sum)/sd(sum),
+                  cv = sd(sum)/mean(sum),
                   spp = mean(spp),
                   simp = mean(1-simpson)
 )
 
 
-plot(df.cv.id$spp, df.cv.id$cv, xlab="Average species Richness", main="",
-     ylab=expression(paste("Cover Stability (", mu/sigma, ")")), cex=0.5, ylim=c(0,4),
+hist(df.cv.id$cv, freq=FALSE, col="grey70", border="grey70", xlim=c(0,1.5), 
+     ylim=c(0,2), xlab="Temporal C.V.", main="")
+lines(density(df.cv.id$cv, adjust=1), lwd=4, col="black")
+# text(x=1.5, y=c(1.7,1.5,1.3,1.1,0.9), c("ARTR", "HECO", "POSE", "PSSP", "rare"), cex=0.8)
+# text(x=1.5, y=1.9, "Species", cex=1.2)
+lines(x=rep(median(df.cv.id$cv),3), y=seq(0,2), lty="dashed", lwd=2, col="white")
+
+library(ggplot2)
+ggplot() +
+  geom_histogram(aes(x=df.cv.id$cv, y=..density..), binwidth=0.2, fill="grey") +
+  geom_line(aes(x=df.cv.id$cv), adjust=2, size=1, stat="density") +
+  theme_bw()
+
+  plot(df.cv.id$spp, df.cv.id$cv, xlab="Average species Richness", main="",
+     ylab=expression(paste("Cover Stability (", mu/sigma, ")")), cex=0.5, ylim=c(0,6),
      cex.lab=1.5)
 x = df.cv.id$spp
 y = df.cv.id$cv
