@@ -360,20 +360,24 @@ q1.df <- ddply(df.agg.id, .(year, species), summarise,
 )
 q1.df <- q1.df[q1.df$year != 73,]
 q1.df <- q1.df[q1.df$species != "rare",]
+
+library(ggplot2)
 ggplot(data=q1.df, aes(x=year, y=(avg*100))) + 
   geom_line(aes(color=species)) +
   geom_point(color="white", size=3) +
   geom_point(aes(color=species), size=2) +
   theme_bw() +
   xlab("Year (19xx)") + ylab("Mean Cover (%)") +
+  scale_color_discrete("") +
   theme(axis.title.x = element_text(size=14),
         axis.title.y = element_text(size=14, angle=90), 
         axis.text.x = element_text(size=12), 
         axis.text.y = element_text(size=12), 
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
-        legend.position = "right",
-        legend.key = element_blank()   
+        legend.position = c(0.25,0.8),
+        legend.key = element_blank(),
+        legend.text=element_text(size=10)
   )
 
 

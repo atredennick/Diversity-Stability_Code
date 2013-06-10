@@ -1,0 +1,107 @@
+rm(list=ls())
+
+env.stoch <- function(Nspecies, sigE, synch.targ){
+  S <- Nspecies
+  sigE <- sigE
+  PhiE <- synch.targ
+  
+  if(PhiE!=1/S)
+    betaz=(PhiE-1+sqrt(PhiE*(1-PhiE)*(S-1)))/(S*PhiE-1) else
+    betaz=0.5
+  
+  EsigE=sigE
+  AsigE=matrix(-1/S,nrow=S, ncol=S)
+  diag(AsigE)=betaz-1/S
+  AsigE=AsigE * EsigE/sqrt(betaz^2-2*betaz/S+1/S)
+  
+  #Finally, you get the vector of environmental stochasticity epsilon=sigE uei(t) with the following line of code:
+  epsilon=AsigE %*% rnorm(S)
+  return(epsilon)
+}
+
+model <- function(Nspecies, time, synch.targ){
+  rm = numeric(Nspecies)
+  N = matrix(ncol = Nspecies, nrow = time)
+  K = numeric(Nspecies)
+  K.log = numeric(Nspecies)
+  evar = numeric(Nspecies)
+  dvar = numeric(Nspecies)
+  beta = matrix(nrow = Nspecies, ncol = (Nspecies-1))
+  Ntot = numeric(time)
+  r = matrix(ncol=Nspecies, nrow=time)
+  comp.spp = matrix(nrow=Nspecies, ncol=(Nspecies-1))
+  sum.comp = numeric(Nspecies)
+  
+  for (i in 1:Nspecies){
+    K.log[i] <- rnorm(1, log(10000), 0.7)
+    K[i] <- exp(K.log[i])
+    
+    evar[i] <- runif(1, 0.01, 0.2)
+    dvar[i] <- runif(1, 0, 2)
+    
+    rm[i] <- runif(1, 0.2, 1.5)
+    
+    N[1,i] <- rnorm(1, K[i], 500)
+    
+    for (j in 1:(Nspecies-1)){
+      rand.mean <- round(runif(1, 0, 0.05), 1)
+      beta[i,j] <- rnorm(1, rand.mean, 0.02)
+    }
+  }
+
+  
+  Ntot[1] <- sum(N[1,])
+  
+  for(t in 2:time){
+    epsilon <- env.stoch(Nspecies=Nspecies,
+                         sigE=evar,
+                         synch.targ=synch.targ)
+    
+    for(i in 1:Nspecies){
+      
+      n.seq = seq(1, Nspecies, 1)
+      n.index = n.seq[n.seq!=i]
+      
+      for(j in 1:(Nspecies-1)){
+        comp.spp[i,j] <- ((beta[i,j] * N[t-1,n.index[j]])/K[n.index[j]])
+      }
+      sum.comp[i] <- sum(comp.spp[i,])
+      whitevar <- rnorm(1, mean=0)
+      dnoise <- rnorm(1, mean=0)
+      
+      r[t, i] <- rm[i] * (1-(N[t-1,i]/K[i]) - sum.comp[i]) + epsilon[i] + (dvar[i] * dnoise/sqrt(N[t-1, i]))    
+      N[t, i] <- N[t-1, i] + N[t-1, i] * r[t, i]
+    }
+    
+    Ntot[t] = sum(N[t,])
+  }
+  
+  population <- matrix(ncol=Nspecies, nrow=time)
+  population <- cbind(N, Ntot)
+  return(population)
+}
+
+
+
+years = 600
+# N.sim = c(2,4,8,16,32)
+N.sim = c(16)
+sims = 1
+cv = matrix(nrow=sims, ncol=length(N.sim))
+
+
+  for(i in 1:length(N.sim)){
+    for(j in 1:sims){
+      two.species <- model(Nspecies=N.sim[i], time=years, synch.targ=0.2)
+      Ntot = two.species[1:years,ncol(two.species)]
+      cv[j,i] = sd(Ntot)/mean(Ntot)
+    }
+  }
+
+
+# write.csv(cv, "stability_simulations_nodom.csv")
+
+time <- seq(1,years,1)
+matplot(time, two.species, type="l")
+
+
