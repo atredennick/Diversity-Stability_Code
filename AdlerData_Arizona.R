@@ -12,50 +12,43 @@ library(grid)
 ### Idaho data ###
 
 #read in data from point and polygon files
-polydata.mt <- read.csv("/Users/atredenn/Documents/Projects/Diversity_Stability/Montana_Data/Montana_allrecords_cover.csv")
-polydata.mt <- as.data.frame(polydata.mt)
-polydata.mt$Species <- as.character(polydata.mt$Species)
-
-pointdata.mt <- read.csv("/Users/atredenn/Documents/Projects/Diversity_Stability/Montana_Data/Montana_allrecords_density.csv")
-
-data.pasm <- pointdata.mt[pointdata.mt$Species == "Pascopyrum smithii",]
-data.pasm$Area <- 0.000025
-
-data.pasm2 <- subset(data.pasm, select=c(quad, year, Species, Area))
+polydata.az <- read.csv("/Users/atredenn/Documents/Projects/Diversity_Stability/Arizona_Data/allrecords_polygon_features.csv")
+polydata.az <- as.data.frame(polydata.az)
+names(polydata.az)
+polydata.az$Species <- as.character(polydata.az$Species)
 
 
-polys.mt <- subset(polydata.mt, select=c(quad, year, Species, Area))
+species.all <- read.csv("/Users/atredenn/Documents/Projects/Diversity_Stability/Arizona_Data/species_list.csv")
+species.sort <- species.all[sort.list(species.all[,3]), ]
+species.sort <- species.sort[!is.na(species.sort[,3]),]
+index.doms <- seq(nrow(species.sort)-4, nrow(species.sort), 1)
+dom.spp <- species.sort[index.doms,1]
 
-data.mt <- polys.mt
-data.mt <- data.mt[order(data.mt$quad, data.mt$year),]
-names(data.mt)
 
-#Separate out dominant species, skip this if not interested in just dominant species
-dom.spp <- c("Bouteloua gracilis",
-             "Pascopyrum smithii",
-             "Hesperostipa comata",
-             "Carex filifolia",
-             "Poa secunda",
-             "Opuntia polyacantha")
+polys.az <- subset(polydata.az, select=c(quad, year, Species, Area))
 
-data.bogr <- data.mt[data.mt$Species == dom.spp[1],]
-data.pasm <- data.mt[data.mt$Species == dom.spp[2],]
-data.heco <- data.mt[data.mt$Species == dom.spp[3],]
-data.cafi <- data.mt[data.mt$Species == dom.spp[4],]
-data.pose <- data.mt[data.mt$Species == dom.spp[5],]
-data.oppo <- data.mt[data.mt$Species == dom.spp[6],]
+data.az <- polys.az
+data.az <- data.az[order(data.az$quad, data.az$year),]
+names(data.az)
 
-data.dom <- rbind(data.bogr, data.pasm, data.heco,
-                  data.cafi, data.pose, data.oppo, data.pasm2)
+data.arsp <- data.az[data.az$Species == dom.spp[1],]
+data.hibe <- data.az[data.az$Species == dom.spp[2],]
+data.boer <- data.az[data.az$Species == dom.spp[3],]
+data.bope <- data.az[data.az$Species == dom.spp[4],]
+data.boro <- data.az[data.az$Species == dom.spp[5],]
+
+
+data.dom <- rbind(data.arsp, data.hibe, data.boer,
+                  data.bope, data.boro)
 
 data.dom <- data.dom[order(data.dom$quad, data.dom$year),]
 
 
 #First sum areas over species within each quad for ALL species
-df.agg.mt <- ddply(data.mt, .(quad, year, Species), summarise, 
+df.agg.az <- ddply(data.az, .(quad, year, Species), summarise, 
                    sum = sum(Area),
                    numspecies = length(Species))
-df.agg.tot <- ddply(data.mt, .(quad, year), summarise, 
+df.agg.tot <- ddply(data.az, .(quad, year), summarise, 
                     sum = sum(Area))
 totavg.df <- ddply(df.agg.tot, .(year), summarise,
                    avg = mean(sum))
@@ -99,6 +92,10 @@ sum(ddd$area)
 # q1.df <- dat.all[2:nrow(dat.all),]
 # 
 
+q1.df <- q1.df[q1.df[,1]!=47,]
+df.agg.domavg <- df.agg.domavg[df.agg.domavg$year!=47,]
+totavg.df <- totavg.df[totavg.df$year!=47,]
+
 ##Plot dominant species average cover through time
 ggplot(data=q1.df, aes(x=year, y=(avg*100))) + 
   geom_line(aes(linetype=Species), color="grey45") +
@@ -108,7 +105,7 @@ ggplot(data=q1.df, aes(x=year, y=(avg*100))) +
   geom_line(aes(x=totavg.df$year, y=(totavg.df$avg*100)), color="darkorange", size=1.5) + 
   theme_bw() +
   xlab("Year (19xx)") + ylab("Mean Cover (%)") +
-  scale_y_continuous(limits=c(0,40)) +
+  scale_y_continuous(limits=c(0,10)) +
   theme(axis.title.x = element_text(size=14),
         axis.title.y = element_text(size=14, angle=90), 
         axis.text.x = element_text(size=12), 
