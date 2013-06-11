@@ -79,6 +79,35 @@ totavg.df <- ddply(df.agg.tot, .(year), summarise,
 ##Break from aggregation for diversity-stability to plot dominants throught time##
 df.agg.dom <- ddply(data.dom, .(quad, year, species), summarise,
                     sum = sum(area))
+yrs <- sort(unique(df.agg.dom$year))
+quads <- sort(unique(df.agg.dom$quad))
+dat.all <- data.frame(quad=NA,
+                      year=NA,
+                      species=NA,
+                      sum=NA)
+dat.quad <- data.frame(quad=NA,
+                       year=NA,
+                       species=NA,
+                       sum=NA)
+
+for(i in 1:length(quads)){
+  dat.quad <- df.agg.dom[df.agg.dom$quad == quads[i],]
+  for (j in 1:length(yrs)){
+    dat.quadyr <- dat.quad[dat.quad$year == yrs[j],]
+    for (k in 1:length(dom.spp)){
+      ifelse (length(grep(dom.spp[k], dat.quadyr$species)) == 0,
+              dat.quadyr <- rbind(dat.quadyr, data.frame(quad = quads[i],
+                                                         year = yrs[j],
+                                                         species = dom.spp[k],
+                                                         sum = 0)),
+              dat.quadyr <- dat.quadyr)
+    }
+    dat.quad <- rbind(dat.quad, dat.quadyr)
+  }
+  dat.all <- rbind(dat.all, dat.quad)
+}
+
+df.agg.dom <- dat.all[2:nrow(dat.all),]
 q1.df <- ddply(df.agg.dom, .(year, species), summarise, 
                avg = mean(sum))
 
@@ -90,14 +119,13 @@ df.agg.domavg <- ddply(df.agg.domtot, .(year), summarise,
 
 ##Plot dominant species average cover through time
 ggplot(data=q1.df, aes(x=year, y=(avg*100))) + 
-#   geom_line(aes(linetype=species), color="grey45") +
-  geom_point(aes(shape=species), color="white", size=3) +
-#   geom_point(aes(shape=species, color=species), size=2) +
-  geom_point(aes(color=species), size=2) +
-  stat_smooth(aes(fill=species), color="white", size=1) +
-#   geom_line(aes(x=df.agg.domavg$year, y=df.agg.domavg$tot), color="steelblue", size=1.1) + 
-#   geom_line(aes(x=totavg.df$year, y=totavg.df$avg), color="darkorange", size=1.5) + 
-  
+  geom_line(aes(linetype=species), color="grey45") +
+#   geom_point(aes(shape=species), color="white", size=3) +
+  geom_point(aes(shape=species), size=2) +
+#   geom_point(aes(color=species), size=2) +
+#   stat_smooth(aes(fill=species), color="white", size=1) +
+  geom_line(aes(x=df.agg.domavg$year, y=df.agg.domavg$tot), color="steelblue", size=1.1) + 
+  geom_line(aes(x=totavg.df$year, y=totavg.df$avg), color="darkorange", size=1.5) + 
   theme_bw() +
   xlab("Year (19xx)") + ylab("Mean Cover (%)") +
   theme(axis.title.x = element_text(size=14),

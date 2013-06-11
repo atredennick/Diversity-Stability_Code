@@ -57,9 +57,39 @@ totavg.df <- ddply(df.agg.tot, .(year), summarise,
 ##Break from aggregation for diversity-stability to plot dominants throught time##
 df.agg.dom <- ddply(data.dom, .(quad, year, Species), summarise,
                     sum = sum(Area))
+
+yrs <- sort(unique(df.agg.dom$year))
+quads <- sort(unique(df.agg.dom$quad))
+dat.all <- data.frame(quad=NA,
+                       year=NA,
+                       Species=NA,
+                       sum=NA)
+dat.quad <- data.frame(quad=NA,
+                      year=NA,
+                      Species=NA,
+                      sum=NA)
+
+for(i in 1:length(quads)){
+  dat.quad <- df.agg.dom[df.agg.dom$quad == quads[i],]
+  for (j in 1:length(yrs)){
+    dat.quadyr <- dat.quad[dat.quad$year == yrs[j],]
+    for (k in 1:length(dom.spp)){
+      ifelse (length(grep(dom.spp[k], dat.quadyr$Species)) == 0,
+              dat.quadyr <- rbind(dat.quadyr, data.frame(quad = quads[i],
+                                                         year = yrs[j],
+                                                         Species = dom.spp[k],
+                                                         sum = 0)),
+              dat.quadyr <- dat.quadyr)
+    }
+    dat.quad <- rbind(dat.quad, dat.quadyr)
+  }
+  dat.all <- rbind(dat.all, dat.quad)
+}
+
+df.agg.dom <- dat.all[2:nrow(dat.all),]
+
 q1.df <- ddply(df.agg.dom, .(year, Species), summarise, 
                avg = mean(sum))
-
 
 df.agg.domtot <- ddply(data.dom, .(quad, year), summarise,
                        sum = sum(Area))
