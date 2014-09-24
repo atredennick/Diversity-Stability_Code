@@ -369,5 +369,5 @@ for(i in 1:Nspp){
 }
 
 #write years used
-write.table(climYrSave,"climYears.csv",row.names=F,sep=",")
-write.table(randYrSave,"randYears.csv",row.names=F,sep=",")
+# write.table(climYrSave,"climYears.csv",row.names=F,sep=",")
+# write.table(randYrSave,"randYears.csv",row.names=F,sep=",")
