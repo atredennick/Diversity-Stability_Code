@@ -3,7 +3,7 @@
 # for intraspecific competition only or intra- and interspecific competition
 
 # ATT 8/26/14
-outfile1="ipm_cover_T10.csv"
+outfile1="ipm_cover.csv"
 outfile2="stable_size.csv"
 # obsClimateFile="Climate.csv"
 perturbPpt=F
@@ -19,7 +19,7 @@ maxSize=c(3000,202,260,225)    # in cm^2: PSSP=225 HECO=202  POSE=260  ARTR=3000
 Nyrs=22
 doGroup=NA  # NA for spatial avg., values 1-6 for a specific group
 constant=F  
-NoOverlap.Inter=T
+NoOverlap.Inter=F
 compScale=F
 
 #============================================================
@@ -355,19 +355,19 @@ abline(v=0.2, lwd=3, lty=1)
 
 
 # ## Write ouput==============================================================
-# 
-# output=data.frame(cbind(c(1:NROW(covSave)),covSave))
-# names(output)=c("time",sppList)
-# write.table(output,outfile1,row.names=F,sep=",")
-# 
-# for(i in 1:Nspp){
-#  filename=paste(sppList[i],"_",outfile2,sep="")
-#  tmp=rowMeans(sizeSave[[i]][,(burn.in+1):tlimit])
-#  output=data.frame(v[[i]],tmp)
-#  names(output)=c("size","freq")
-#  write.table(output,filename,row.names=F,sep=",")
-# }
-# 
-# #write years used
-# write.table(climYrSave,"climYears.csv",row.names=F,sep=",")
-# write.table(randYrSave,"randYears.csv",row.names=F,sep=",")
+
+output=data.frame(cbind(c(1:NROW(covSave)),covSave))
+names(output)=c("time",sppList)
+write.table(output,outfile1,row.names=F,sep=",")
+
+for(i in 1:Nspp){
+ filename=paste(sppList[i],"_",outfile2,sep="")
+ tmp=rowMeans(sizeSave[[i]][,(burn.in+1):tlimit])
+ output=data.frame(v[[i]],tmp)
+ names(output)=c("size","freq")
+ write.table(output,filename,row.names=F,sep=",")
+}
+
+#write years used
+write.table(climYrSave,"climYears.csv",row.names=F,sep=",")
+write.table(randYrSave,"randYears.csv",row.names=F,sep=",")
