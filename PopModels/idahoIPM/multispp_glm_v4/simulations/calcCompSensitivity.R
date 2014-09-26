@@ -12,5 +12,5 @@ S$species <- invadeD$species
 library(ggplot2)
 ggplot(S, aes(x=species, y=S))+
   geom_bar(stat="identity")+
-  ylab("Sensitivity to Competition (S)")
+  ylab("Sensitivity to Competition (S)")+
   theme_bw()
