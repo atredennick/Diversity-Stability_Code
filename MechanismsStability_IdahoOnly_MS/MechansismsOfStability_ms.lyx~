@@ -186,6 +186,9 @@ ABSTRACT:
 \series bold
 \size footnotesize
 Keywords: 
+\series default
+ecosystem function, diversity-stability relationship, asynchrony, integral
+ projection model
 \end_layout
 
 \begin_layout Standard
@@ -213,20 +216,26 @@ Total biomass of species rich communities tends to be more stable through
  time than species poor communities.
  Though originally a contentious proposition, two decades of theoretical
  and empirical work make clear that often, though not always, species diversity
- begets temporal stability.
- Less clear are the mechanisms by which diversity promotes temporal stability.
+ begets temporal stability (hereafter, simply 'stability').
+ Less clear are the mechanisms by which diversity promotes stability.
  Theory has provided several potential mechanisms, but testing for the existence
  and relative importance of proposed mechanisms in natural communities has
  remained a challenge.
  The challenge remained for two reasons: (1) we lacked coherent and general
- theory that predicts temporal stability based on several mechanisms, and
- (2) we lacked data at the temporal and demographic resolution necessary
- to rigorously confront theory.
+ theory that predicts stability based on several mechanisms, and (2) we
+ lacked data at the temporal and demographic resolution necessary to rigorously
+ confront theory.
  Fortunately, these limitations can now be overcome.
 \end_layout
 
 \begin_layout Standard
-
+Recent theoretical work provides an explicit prediction of ecosystem stability
+ and related work has identified three main mechanisms that, in combination
+ or isolation, can lead to the stabilizing effects of species richness on
+ ecosystem stability: (1) asynchrony in species' responses to the environment,
+ (2) differences among species' intrinsic rates of natural increase, and
+ (3) reduction in the strength of competition.
+ 
 \end_layout
 
 \end_body
