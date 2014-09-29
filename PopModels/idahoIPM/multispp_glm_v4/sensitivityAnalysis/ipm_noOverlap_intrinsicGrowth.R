@@ -325,7 +325,8 @@ ggplot(mD, aes(x=variable, y=value, fill=as.factor(change)))+
   geom_bar(stat="identity", position="dodge")+
   theme_bw()+
   scale_fill_manual(values=c("grey25", "grey50", "grey75"),
-                    name=("Proportional intercept change"))
+                    name=("Proportional intercept change"))+
+  xlab("species") + ylab("intrinsic growth rate (r)")
 
 ####
 #### OUTPUT
