@@ -178,6 +178,21 @@ Corresponding Author; Email: atredenn@gmail.com
 \series bold
 \size small
 ABSTRACT: 
+\series default
+While it is now widely accepted that species richness promotes temporal
+ stability of ecosystem processes, the mechanisms that confer stability
+ in natural communities remain poorly understood.
+ In part this is because it is difficult to disentangle proposed mechanisms
+ using data from the original experiments designed to detect the general
+ trend between species richness and different aspect of ecosystem function.
+ Here we take a new, demographic approach toward identifying the mechanisms
+ that increase, or decrease, temporal stability of community productivity.
+ We used an empirically parameterized population model of a four species
+ community in southern Idaho to quantify the relative contribution of three
+ proposed mechanisms to temporal stability of annual productivity.
+ By perturbing the model to reflect theoretical mechanisms, we found that
+ ...
+ 
 \end_layout
 
 \begin_layout Standard
@@ -216,7 +231,7 @@ Total biomass of species rich communities tends to be more stable through
  time than species poor communities.
  Though originally a contentious proposition, two decades of theoretical
  and empirical work make clear that often, though not always, species diversity
- begets temporal stability (hereafter, simply 'stability').
+ begets temporal stability (hereafter, simply `stability').
  Less clear are the mechanisms by which diversity promotes stability.
  Theory has provided several potential mechanisms, but testing for the existence
  and relative importance of proposed mechanisms in natural communities has
@@ -235,7 +250,216 @@ Recent theoretical work provides an explicit prediction of ecosystem stability
  ecosystem stability: (1) asynchrony in species' responses to the environment,
  (2) differences among species' intrinsic rates of natural increase, and
  (3) reduction in the strength of competition.
+ Mechanisms 1 and 2 are related to temporal complementarity among species,
+ which, in combination, can yield asynchronous population dynamics that
+ dampen the effect of environmentl fluctuations.
+ Mechanism 3 results from functional complementarity and can lead to increased
+ mean biomass when species are in mixture relative to monocultures because
+ more niche space is utilized.
  
+\end_layout
+
+\begin_layout Standard
+In combination, these mechanisms provide a pathway for developing testable
+ hypotheses of how species-specific properties affect community stability.
+ Based on the three mechanisms, we developed a set of hypotheses that can
+ be tested by perturbing a population model while keeping species richness
+ constant.
+ We tested the following hypotheses: 
+\end_layout
+
+\begin_layout Enumerate
+Greater differences in species-specific responses to environment (yearly
+ growth rates in a fluctuating environment) will increase temporal stability
+ by creating asynchronous population dynamics where a good year for one
+ species may be a bad year for another species.
+ This leads to the `insurance effect' of biodiversity.
+\end_layout
+
+\begin_layout Enumerate
+Greater differences in species' intrinsic growth rates (low-density growth
+ rate in the absence of interspecific competition and temporal fluctuations)
+ will increase temporal stability, but to a lesser degree than species-specific
+ responses to the environment.
+\end_layout
+
+\begin_layout Enumerate
+Increasing species' sensitivity to competition will decrease stability because
+ mean total biomass will decrease, which leads to an increase in biomass
+ variability.
+\end_layout
+
+\begin_layout Standard
+Importantly, the approach we described below allows us to not only test
+ for the operation of these mechanisms, it also allows us to quantify the
+ relative contribution of each proposed mechanism.
+ 
+\end_layout
+
+\begin_layout Standard
+As mentioned above, a large hurdle to testing theoretical mechanisms of
+ stability is the lack of highly resolved demographic data over relatively
+ long time frames.
+ We overcome this limitation by using a remarkable historical dataset from
+ the sagebrush steppe in southern Idaho.
+ The dataset consists of annually mapped quadrats that allow us to track
+ the size and fate of individual plants.
+ The data allow us to indirectly estimate the species-specific parameters
+ needed to test our hypotheses using a multi-species population model.
+ With those estimates in hand, we are then in a position to perturb the
+ model based on our hypotheses.
+ We note from the outset that our goal is to ...
+ SOMETHING ABOUT KEEPING SPECIES RICHNESS CONSTANT.
+\end_layout
+
+\begin_layout Section
+Materials and Methods
+\end_layout
+
+\begin_layout Subsection
+Study area and description of data (mostly stolen from Adler et al.
+ 2010 ver batim)
+\end_layout
+
+\begin_layout Standard
+The data we use to parameterize our multi-species population model come
+ from the U.S.
+ Sheep Experiment Station (USSES) near Dubois, Idaho (
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$44.2^
+\backslash
+circ$
+\end_layout
+
+\end_inset
+
+N, 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$112.2^
+\backslash
+circ$
+\end_layout
+
+\end_inset
+
+W), 1500 m above sea level.
+ During the period of data collection (1926-1957), mean annual precipitation
+ was 270 mm and mean temperatures ranged from 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$8
+\backslash
+:^
+\backslash
+circ$
+\end_layout
+
+\end_inset
+
+C (January) to 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$21
+\backslash
+:^
+\backslash
+circ$
+\end_layout
+
+\end_inset
+
+C (July).
+ The vegetation is dominated by the shrub, 
+\shape italic
+Artemisia tripartita
+\shape default
+, and the C3 perennial bunchgrasses 
+\shape italic
+Pseudoroegneria spicata
+\shape default
+, 
+\shape italic
+Hesperostipa comata
+\shape default
+ and 
+\shape italic
+Poa secunda
+\shape default
+.
+ These four species, the focus of our models, accounted for over 70% of
+ basal cover (grasses) and 60% of canopy cover (shrubs and forbs).
+\end_layout
+
+\begin_layout Standard
+Scientists at the USSES established 26 1-m
+\begin_inset Formula $^{2}$
+\end_inset
+
+ quadrats between 1926 and 1932.
+ Eighteen quadrats were distributed among four ungrazed exclosures, and
+ eight were distributed in two pastures grazed at medium intensity from
+ spring (April) through fall (October).
+ All quadrats were located on similar topography and soils.
+ In most years until 1957, all individual plants in each quadrat were mapped
+ using a pan- tograph (CITE: Blaisdell 1958).
+ Digitized versions of the original maps are available online (CITE: Zachmann,
+ Moffet & Adler 2010).
+ Our models are based on data from 22 year-to-year transitions between 1926
+ and 1957.
+ For the first two transitions, only four quadrats were observed, while
+ at least 16 quadrats were observed for all subsequent transi- tions.
+ Extraction of demographic data is described in detail elsewhere (CITATIONS).
+\end_layout
+
+\begin_layout Subsection
+Vital rate regressions
+\end_layout
+
+\begin_layout Standard
+Statistical models of vital rates (survival, growth, and recruitment) are
+ the building blocks of our multi-species integral projection model (IPM).
+ Following previous work, we modeled the survival probability and growth
+ (the size of a genet at time 
+\shape italic
+t
+\shape default
+) as functions of genet size, among year temporal variation, variation due
+ to quadrat location, and inter- and intraspecific neighborhood crowding.
+ Temporal variation is represented by a random year effect on the intercept
+ and a random year effect on the coefficient for genet size (a temporally
+ varying slope).
+ Unlike previous work, we do not include specific climate covariates, allowing
+ the random year effects on the intercept and slope to account for all interannu
+al variation.
+ We fit the models using INLA (CITATION).
+ We used a binomial likelihood for the survival model and a normal likelihood
+ for the growth regression.
+ Details can be found in Appendix X.
+\end_layout
+
+\begin_layout Standard
+We modeled recruitment at the quadrat level, rather than at the individual
+ level, because it is impossible to assign new recruits to a specific genet.
+ Since the statistical modeled required hierarchical models of parent effects,
+ we used MCMC implemented in JAGS to fit the recruitment model.
+\end_layout
+
+\begin_layout Subsection
+Stochastic integral projection model
 \end_layout
 
 \end_body
