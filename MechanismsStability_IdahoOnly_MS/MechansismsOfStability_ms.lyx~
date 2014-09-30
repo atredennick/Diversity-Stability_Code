@@ -119,7 +119,8 @@ endnotes
 \begin_body
 
 \begin_layout Title
-Mechanisms of temporal stability in a perennial plant community
+Mechanisms of temporal stability of annual production in a perennial plant
+ community
 \end_layout
 
 \begin_layout Author
@@ -184,7 +185,7 @@ While it is now widely accepted that species richness promotes temporal
  in natural communities remain poorly understood.
  In part this is because it is difficult to disentangle proposed mechanisms
  using data from the original experiments designed to detect the general
- trend between species richness and different aspect of ecosystem function.
+ trend between species richness and ecosystem functions.
  Here we take a new, demographic approach toward identifying the mechanisms
  that increase, or decrease, temporal stability of community productivity.
  We used an empirically parameterized population model of a four species
@@ -454,6 +455,8 @@ al variation.
 \begin_layout Standard
 We modeled recruitment at the quadrat level, rather than at the individual
  level, because it is impossible to assign new recruits to a specific genet.
+ Since the statistical modeled required hierarchical models of parent effects,
+ we used MCMC implemented in JAGS to fit the recruitment model.
 \end_layout
 
 \begin_layout Subsection
