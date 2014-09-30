@@ -15,6 +15,8 @@ setwd(dir = "../")
 
 # ATT 8/26/14
 outfile1="ipm_cover_intrinsicGrowth.csv"
+rMax <- read.csv("./simulations/Rmax_ipm.csv")
+rScales <- 1-scale(rMax$maxR, center = TRUE, scale = FALSE)
 
 A=10000 #Area of 100cm x 100cm quadrat
 tlimit=200 ## number of years to simulate
@@ -29,6 +31,7 @@ NoOverlap.Inter=T # no overlap of heterospecifics
 compScale=F # not well implemented, but for rescaling competition coefficients
 
 changeVec <- c(-0.25, 0, 0.25)
+changeVec <- rScales[1:4]
 maxR <- matrix(NA, nrow=length(sppList), ncol=length(changeVec))
 
 for(jjjj in 1:length(sppList)){
@@ -76,10 +79,15 @@ for(jjjj in 1:length(sppList)){
     Gpars$nb <- tmp
   }
   
-  intcpSpp <- Gpars$intcpt[jjjj]
+  intcpSppG <- Gpars$intcpt
+  intcpSppS <- Spars$intcpt
+  intcpSppR <- Rpars$intcpt.mu
   
-  for(doSens in 1:length(changeVec)){
-    Gpars$intcpt[jjjj] <- intcpSpp + intcpSpp*changeVec[doSens]
+  for(doSens in 1:1){
+#     Gpars$intcpt[jjjj] <- intcpSpp + intcpSpp*changeVec[doSens]
+    Gpars$intcpt <- intcpSppG*changeVec
+    Spars$intcpt <- intcpSppS*changeVec
+    Rpars$intcpt.yr <- matrix(intcpSppR*changeVec,Nyrs,Nspp,byrow=T)
     
     #============================================================================================#
     # (II) Simulation length, Matrix size and initial vectors
@@ -331,10 +339,10 @@ ggplot(mD, aes(x=variable, y=value, fill=as.factor(change)))+
 ####
 #### OUTPUT
 ####
-
-outfile <- "Rmax_ipm.csv"
-output <- as.data.frame(maxR)
-output$species <- sppList
-write.table(output, outfile, row.names=FALSE, sep=",")
+# 
+# outfile <- "Rmax_ipm.csv"
+# output <- as.data.frame(maxR)
+# output$species <- sppList
+# write.table(output, outfile, row.names=FALSE, sep=",")
 
 
