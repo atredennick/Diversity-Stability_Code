@@ -8,6 +8,11 @@ cv <- read.csv("CV_rVary.csv")
 sdr <- read.csv("rSD_rVary.csv")
 pgrs <- read.csv("pgrs_rVary.csv")
 
+plot(density(pgrs[,2], adjust=5), col=1, lwd=3)
+for(i in 3:5){
+  lines(density(pgrs[,i], adjust=5), col=i, lwd=3)
+}
+
 tmpI <- which(pgrs<0, arr.ind = TRUE)[,1]
 
 plotD <- as.data.frame(cbind(cv[,2], sdr[,2]))
@@ -19,3 +24,4 @@ ggplot(plotD[-tmpI,], aes(x=sdr, y=cv))+
   theme_bw()+
   xlab("sd(r)")+
   ylab(expression(CV[T]))
+
