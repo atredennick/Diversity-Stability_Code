@@ -20,7 +20,7 @@ setwd(dir = "../")
 invade=TRUE #FALSE for intrinsic growth rate; TRUE for invasion growth rate
 
 ifelse(invade==TRUE,
-       outfile <- "./simulations/invasionGrowthRates_YrFluct.csv",
+       outfile <- "./simulations/invasionGrowthRates_YrFluct_PairWise.csv",
        outfile <- "./simulations/intrinsicGrowthRates_YrFluct.csv")
 
 # ATT 9/26/14
@@ -345,8 +345,15 @@ for(jjjj in 1:length(sppList)){
   }#end otherspp loop
 }#end fix spp look
 
-output <- as.data.frame(maxR)
-output$species <- sppList
-write.table(output, outfile, row.names=FALSE, sep=",")
+out <- matrix(NA, 4, 4)
+for(i in 1:nrow(maxR)){
+  out[i,i] <- 0
+  out[i,-i] <- maxR[i,]
+}
+
+output <- as.data.frame(out)
+rownames(output) <- sppList
+colnames(output) <- sppList 
+write.table(output, outfile, row.names=TRUE, sep=",")
 
 
