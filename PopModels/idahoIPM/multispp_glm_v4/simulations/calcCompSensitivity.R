@@ -2,6 +2,10 @@
 
 #Sensitivity to competition: S = 1 - (r[invasion]-r[alone])
 
+####
+#### Community wide ----------------------------------------
+####
+
 invadeD <- read.csv("invasionGrowthRates_YrFluct.csv")
 intrinsicD <- read.csv("intrinsicGrowthRates_YrFluct.csv")
 
@@ -28,4 +32,20 @@ ggplot(mD, aes(x=Species, y=value, fill=variable))+
   theme_bw()
 
 
+####
+#### Pair wise ----------------------------------------
+####
+
+invadePairs <- read.csv("invasionGrowthRates_YrFluct_PairWise.csv")
+pairS <- matrix(NA, 4, 4)
+for(i in 1:nrow(pairS)){
+  pairS[i,] <- as.numeric(1 - (invadePairs[i,] / intrinsicD[i,1]))
+}
+pairS[which(pairS==1)] <- 0
+pD <- as.data.frame(pairS)
+# pD$species <- colnames(invadePairs)
+colnames(pD) <- colnames(invadePairs)
+rownames(pD) <- colnames(invadePairs)
+library(xtable)
+print(xtable(pD), type="html", file="pairwiseCompetitionEffects.html", digits=3)
 
