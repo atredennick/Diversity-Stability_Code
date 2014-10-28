@@ -13,8 +13,8 @@
 
 # ATT 8/26/14
 A=10000 #Area of 100cm x 100cm quadrat
-tlimit=200 ## number of years to simulate
-burn.in=100    # years to cut before calculations
+tlimit=500 ## number of years to simulate
+burn.in=250    # years to cut before calculations
 sppList=c("ARTR","HECO","POSE","PSSP")
 bigM=c(75,75,50,50)     #Set matrix dimension for each species
 maxSize=c(3000,202,260,225)    # in cm^2: PSSP=225 HECO=202  POSE=260  ARTR=3000  # minSize=0.2  cm^2
@@ -26,8 +26,7 @@ compScale=F # not well implemented, but for rescaling competition coefficients
 Nspp <- length(sppList)
 
 rSims <- read.csv("randomOffsets_r.csv")  
-rSD <- numeric(nrow(rSims))
-pgrS <- matrix(NA, ncol=length(sppList), nrow=nrow(rSims))
+monoSynch <- numeric(nrow(rSims))
 
 setwd(dir = "../")
 
@@ -176,22 +175,19 @@ for(doSim in 1:nrow(rSims)){
     # (IV) Calculate the equilibrium areas.
     #============================================================================================# 
     fixI=which(sppList==fixSpp)
+    outSave = matrix(NA,tlimit,Nspp)
     
     ## initial population density vector
     nt=v
     for(i in 1:Nspp) nt[[i]][]=0
-    # set fix spp to stable size distribution
-    nt.fix=sizeD$freq
-    # initialize at fix cover value
-    tmp=fixCov*100/(h[fixI]*sum(nt.fix*exp(v[[fixI]])))
-    nt.fix=nt.fix*tmp
+    nt.fix=0.1
     nt[[fixI]]=nt.fix
+    new.nt=nt
     new.nt=nt
     
     # set up matrix to record cover
-    covSave=matrix(NA,0,(2+2*Nspp))
-    colnames(covSave)=c("time","yrParams",paste(sppList,".t0",sep=""),paste(sppList,".t1",sep=""))
-    covSave=rbind(covSave,c(1,NA,sumCover(v,nt,h,A),rep(NA,Nspp)) )
+    covSave = matrix(NA,tlimit,Nspp)
+    covSave[1,]=sumCover(v,nt,h,A)
     
     # initial densities 
     Nsave=matrix(NA,tlimit,Nspp)
@@ -270,9 +266,9 @@ for(doSim in 1:nrow(rSims)){
       Nsave[i,]=sumN(nt,h)
       nt=new.nt
       
-      # return focal spp to fix cover value
-      tmp=fixCov*100/(h[fixI]*sum(nt[[fixI]]*exp(v[[fixI]])))
-      nt[[fixI]]=nt[[fixI]]*tmp
+#       # return focal spp to fix cover value
+#       tmp=fixCov*100/(h[fixI]*sum(nt[[fixI]]*exp(v[[fixI]])))
+#       nt[[fixI]]=nt[[fixI]]*tmp
       
       # return all other species to zero cover value
       tmp2 <- which(c(1:4) != fixI)
@@ -283,17 +279,13 @@ for(doSim in 1:nrow(rSims)){
       print(paste(doSim, sppFix, i));flush.console()
       if(sum(is.na(nt))>0) browser()    
     } # next time step
-    
-    #low density growth rate of focal species
-    tmp1 <- which(colnames(covSave)==paste(fixSpp, ".t0", sep=""))
-    tmp2 <- which(colnames(covSave)==paste(fixSpp, ".t1", sep=""))
-    pgrMean <- mean(log(covSave[burn.in:tlimit,tmp2]/covSave[burn.in:tlimit,tmp1]), na.rm=TRUE)
-    pgrS[doSim, sppFix] <- pgrMean 
-  }#next fixed species
-  rSD[doSim] <- sd(pgrS[doSim,]) 
+    outSave[,fixI] <- covSave[(burn.in+1):tlimit,fixI] 
+  }#next fixed species monoculture
+  totalCov <- apply(X = outSave[(burn.in+1):tlimit,], MARGIN = 1, FUN = sum)
+  sppSD <- apply(X = outSave[(burn.in+1):tlimit,], MARGIN = 2, FUN=sd)
+  monoSynch[jjjj] <- (sd(totalCov)^2)/((sum(sppSD))^2)
 }#next perturbation set
 
-write.csv(rSD, "./stabilitySims/rSD_rVary.csv")
-write.csv(pgrS, "./stabilitySims/pgrs_rVary.csv")
+write.csv(monoSynch, "./stabilitySims/monoSynch.csv")
 
 

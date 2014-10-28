@@ -25,11 +25,13 @@ doGroup=NA  # NA for spatial avg., values 1-6 for a specific group
 constant=F  # constant environment
 NoOverlap.Inter=T # no overlap of heterospecifics
 compScale=F # not well implemented, but for rescaling competition coefficients
+perturbPpt=F
 
 rSims <- read.csv("randomOffsets_r.csv")  
 # rSims <- rSims[1:10,]
 # maxR <- matrix(NA, nrow=length(sppList), ncol=length(changeVec))
 CV <- numeric(nrow(rSims))
+commSynch <- numeric(nrow(rSims))
 
 #============================================================
 # (I) LOAD VITAL RATE PARAMETERS & FUNCTIONS
@@ -292,7 +294,7 @@ for(jjjj in 1:nrow(rSims)){
     covSave[i,]=sumCover(v,nt,h,A)  # store the cover as cm^2/cm^2
     Nsave[i,]=sumN(nt,h)
     
-    print(i)
+    print(paste(jjjj, i))
     flush.console()
     
     if(sum(is.na(nt))>0) browser()  
@@ -301,13 +303,16 @@ for(jjjj in 1:nrow(rSims)){
   
   
   # 
-  # ## Figures ==============================================================
+  ## Output quantities ==============================================================
   totalCov <- apply(X = covSave[(burn.in+1):tlimit,], MARGIN = 1, FUN = sum)
   cvTmp <- (sd(totalCov)^2)/mean(totalCov)
   CV[jjjj] <- cvTmp
+  sppSD <- apply(X = covSave[(burn.in+1):tlimit,], MARGIN = 2, FUN=sd)
+  commSynch[jjjj] <- (sd(totalCov)^2)/((sum(sppSD))^2)
 }
 
 write.csv(CV, "./stabilitySims/CV_rVary.csv")
+write.csv(commSynch, "./stabilitySims/commSynchrony_rVary.csv")
 
 #get average cv over similar timespan as observations (22 consecutive years from random starting points)
 #for fair comparison
