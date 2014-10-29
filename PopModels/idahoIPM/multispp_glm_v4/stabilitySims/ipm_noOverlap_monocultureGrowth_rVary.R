@@ -279,7 +279,7 @@ for(doSim in 1:nrow(rSims)){
   }#next fixed species monoculture
   totalCov <- apply(X = outSave[(burn.in+1):tlimit,], MARGIN = 1, FUN = sum)
   sppSD <- apply(X = outSave[(burn.in+1):tlimit,], MARGIN = 2, FUN=sd)
-  monoSynch[jjjj] <- (sd(totalCov)^2)/((sum(sppSD))^2)
+  monoSynch[doSim] <- (sd(totalCov)^2)/((sum(sppSD))^2)
 }#next perturbation set
 
 write.csv(monoSynch, "./stabilitySims/monoSynch.csv")
