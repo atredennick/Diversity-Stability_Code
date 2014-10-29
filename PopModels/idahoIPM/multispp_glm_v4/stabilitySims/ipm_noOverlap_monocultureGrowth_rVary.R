@@ -25,6 +25,7 @@ Nspp <- length(sppList)
 
 rSims <- read.csv("randomOffsets_r.csv")  
 monoSynch <- numeric(nrow(rSims))
+outSave = matrix(NA,tlimit,Nspp)
 
 setwd(dir = "../")
 
@@ -173,7 +174,6 @@ for(doSim in 1:nrow(rSims)){
     # (IV) Calculate the equilibrium areas.
     #============================================================================================# 
     fixI=which(sppList==fixSpp)
-    outSave = matrix(NA,tlimit,Nspp)
     
     ## initial population density vector
     nt=v
