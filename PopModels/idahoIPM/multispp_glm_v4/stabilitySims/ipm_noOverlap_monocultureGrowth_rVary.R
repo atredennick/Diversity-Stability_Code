@@ -5,15 +5,13 @@
 #This version allows you to "grow" each species in isolation, to obtain
 #the species' intrinsic growth rate (r in Lotka-Volterra terms)
 
-#We do this in a fixed environment where all year effects are set to zero
-
 ####
 #### This version is a sensitivity analysis, chaning Gpars, Rpars, and Spars intercepts
 ####
 
 # ATT 8/26/14
 A=10000 #Area of 100cm x 100cm quadrat
-tlimit=500 ## number of years to simulate
+tlimit=500 # number of years to simulate
 burn.in=250    # years to cut before calculations
 sppList=c("ARTR","HECO","POSE","PSSP")
 bigM=c(75,75,50,50)     #Set matrix dimension for each species
@@ -181,7 +179,7 @@ for(doSim in 1:nrow(rSims)){
     nt=v
     for(i in 1:Nspp) nt[[i]][]=0
     nt.fix=0.1
-    nt[[fixI]]=nt.fix
+    nt[[fixI]][]=nt.fix
     new.nt=nt
     new.nt=nt
     
@@ -259,10 +257,10 @@ for(doSim in 1:nrow(rSims)){
         }    
       } # next species
       
-      tmp=c(i,doYear,sumCover(v,nt,h,A),sumCover(v,new.nt,h,A))
-      covSave=rbind(covSave,tmp)  # store the cover as cm^2/cm^2
+      covSave[i,]=sumCover(v,nt,h,A)  # store the cover as cm^2/cm^2
       Nsave[i,]=sumN(nt,h)
       nt=new.nt
+     
       
 #       # return focal spp to fix cover value
 #       tmp=fixCov*100/(h[fixI]*sum(nt[[fixI]]*exp(v[[fixI]])))
