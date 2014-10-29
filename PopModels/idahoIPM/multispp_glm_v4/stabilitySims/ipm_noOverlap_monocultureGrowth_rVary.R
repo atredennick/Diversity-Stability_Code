@@ -202,10 +202,8 @@ for(doSim in 1:nrow(rSims)){
       yrSave[i]=doYear
       
       #get recruits per area
-      #   cover=covSave[i-1,]; N=Nsave[i-1,]
-      #   rpa=get.rpa(Rpars,cover,doYear)
-      cover=covSave[i-1,3:6]; N=Nsave[i-1,]
-      rpa=get.rpa(Rpars,cover,doYear)
+        cover=covSave[i-1,]; N=Nsave[i-1,]
+        rpa=get.rpa(Rpars,cover,doYear)
       
       #calculate size-specific crowding
       alphaG=Gpars$alpha 
