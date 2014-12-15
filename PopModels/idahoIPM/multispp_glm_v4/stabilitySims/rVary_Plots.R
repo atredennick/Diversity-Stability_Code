@@ -13,11 +13,24 @@ monoSynch <- read.csv("monoSynch.csv")
 commSynch <- read.csv("commSynchrony_rVary.csv")
 
 plot(monoSynch[,2], commSynch[,2])
-mod <- lm(monoSynch[,2]~commSynch[,2])
+mod <- lm(commSynch[,2]~monoSynch[,2])
+abline(mod)
 resmod <- resid(mod)
 
-plot(resmod, cv[,2])
-plot(commSynch[,2], cv[,2])
+plot(resmod, log(1/cv[,2]), xlab=expression(phi[D]), ylab="ln(1/CV)")
+lnCV <- log(1/cv[,2])
+abline(lm(lnCV~resmod), lwd=3)
+plot(commSynch[,2], log(1/cv[,2]))
+plot(monoSynch[,2], log(1/cv[,2]))
+
+dfCV <- data.frame(TS = lnCV,
+                   phiD = resmod)
+ggplot(data=dfCV, aes(x=phiD, y=TS))+
+  geom_point(shape=1, size=4)+
+  stat_smooth(method = "lm", color="purple", fill="purple", size=1)+
+  ylab("ln(TS)")+
+  xlab(expression(phi[D]))+
+  theme_bw()
 
 plot(density(pgrs[,2], adjust=5), col=1, lwd=3)
 for(i in 3:5){
