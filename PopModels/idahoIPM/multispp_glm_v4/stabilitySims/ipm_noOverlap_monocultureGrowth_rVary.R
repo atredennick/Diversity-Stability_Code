@@ -11,8 +11,8 @@
 
 # ATT 8/26/14
 A=10000 #Area of 100cm x 100cm quadrat
-tlimit=500 # number of years to simulate
-burn.in=250    # years to cut before calculations
+tlimit=2000 # number of years to simulate
+burn.in=1000    # years to cut before calculations
 sppList=c("ARTR","HECO","POSE","PSSP")
 bigM=c(75,75,50,50)     #Set matrix dimension for each species
 maxSize=c(3000,202,260,225)    # in cm^2: PSSP=225 HECO=202  POSE=260  ARTR=3000  # minSize=0.2  cm^2
@@ -28,7 +28,7 @@ monoSynch <- numeric(nrow(rSims))
 outSave = matrix(NA,tlimit,Nspp)
 
 setwd(dir = "../")
-
+outCov <- rep(NA, 6)
 for(doSim in 1:nrow(rSims)){
   
   ####
@@ -277,11 +277,18 @@ for(doSim in 1:nrow(rSims)){
     } # next time step
     outSave[,fixI] <- covSave[(burn.in+1):tlimit,fixI] 
   }#next fixed species monoculture
-  totalCov <- apply(X = outSave[(burn.in+1):tlimit,], MARGIN = 1, FUN = sum)
-  sppSD <- apply(X = outSave[(burn.in+1):tlimit,], MARGIN = 2, FUN=sd)
-  monoSynch[doSim] <- (sd(totalCov)^2)/((sum(sppSD))^2)
+    outCov <- rbind(outCov, cbind(outSave, c((burn.in+1):tlimit), rep(doSim, length(c((burn.in+1):tlimit)))))
+#   totalCov <- apply(X = outSave[(burn.in+1):tlimit,], MARGIN = 1, FUN = sum)
+#   sppSD <- apply(X = outSave[(burn.in+1):tlimit,], MARGIN = 2, FUN=sd)
+#   monoSynch[doSim] <- (sd(totalCov)^2)/((sum(sppSD))^2)
 }#next perturbation set
 
-write.csv(monoSynch, "./stabilitySims/monoSynch.csv")
+outD <- outCov[2:nrow(outCov),]
+colnames(outD) <- c(sppList, "timeStep", "simulation")
+
+#Output the time series so we can calculate lots of things later on...
+saveRDS(object = outD, file = "./stabilitySims/output/outTimeSeries_rVary_monoculture.rds")
+
+# write.csv(monoSynch, "./stabilitySims/monoSynch.csv")
 
 
