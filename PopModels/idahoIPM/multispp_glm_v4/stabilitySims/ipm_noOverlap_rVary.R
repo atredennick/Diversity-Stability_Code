@@ -2,21 +2,14 @@
 # This version makes it possible to assume "no overlap"
 # for intraspecific competition only or intra- and interspecific competition
 
-#This version allows you to "grow" each species in isolation, to obtain
-#the species' intrinsic growth rate (r in Lotka-Volterra terms)
-
-#We do this in a fixed environment where all year effects are set to zero
-
 ####
 #### This version is a sensitivity analysis, chaning Gpars, Rpars, and Spars intercepts
 ####
 
 # ATT 8/26/14
-outfile1="ipm_cover_intrinsicGrowth.csv"
-
 A=10000 #Area of 100cm x 100cm quadrat
-tlimit=500 ## number of years to simulate
-burn.in=250    # years to cut before calculations
+tlimit=2000 ## number of years to simulate
+burn.in=1000    # years to cut before calculations
 sppList=c("ARTR","HECO","POSE","PSSP")
 bigM=c(75,75,50,50)     #Set matrix dimension for each species
 maxSize=c(3000,202,260,225)    # in cm^2: PSSP=225 HECO=202  POSE=260  ARTR=3000  # minSize=0.2  cm^2
@@ -39,7 +32,7 @@ commSynch <- numeric(nrow(rSims))
 Nspp=length(sppList)
 
 setwd(dir = "../")
-
+outCov <- rep(NA, 6)
 for(jjjj in 1:nrow(rSims)){
   
   # set up survival parameters and function
@@ -304,15 +297,19 @@ for(jjjj in 1:nrow(rSims)){
   
   # 
   ## Output quantities ==============================================================
-  totalCov <- apply(X = covSave[(burn.in+1):tlimit,], MARGIN = 1, FUN = sum)
-  cvTmp <- (sd(totalCov)^2)/mean(totalCov)
-  CV[jjjj] <- cvTmp
-  sppSD <- apply(X = covSave[(burn.in+1):tlimit,], MARGIN = 2, FUN=sd)
-  commSynch[jjjj] <- (sd(totalCov)^2)/((sum(sppSD))^2)
+  outCov <- rbind(outCov, cbind(covSave, c((burn.in+1):tlimit), rep(jjjj, length(c((burn.in+1):tlimit)))))
+#     apply(X = covSave[(burn.in+1):tlimit,], MARGIN = 1, FUN = sum)
+#   cvTmp <- (sd(totalCov)^2)/mean(totalCov)
+#   CV[jjjj] <- cvTmp
+#   sppSD <- apply(X = covSave[(burn.in+1):tlimit,], MARGIN = 2, FUN=sd)
+#   commSynch[jjjj] <- (sd(totalCov)^2)/((sum(sppSD))^2)
 }
 
-write.csv(CV, "./stabilitySims/CV_rVary.csv")
-write.csv(commSynch, "./stabilitySims/commSynchrony_rVary.csv")
+outD <- outCov[2:nrow(outCov),]
+colnames(outD) <- c(sppList, "timeStep", "simulation")
+
+#Output the time series so we can calculate lots of things later on...
+saveRDS(object = outD, file = "./stabilitySims/output/outTimeSeries_rVary_mixture.rds")
 
 #get average cv over similar timespan as observations (22 consecutive years from random starting points)
 #for fair comparison
