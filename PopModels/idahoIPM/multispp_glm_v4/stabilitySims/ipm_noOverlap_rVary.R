@@ -297,7 +297,7 @@ for(jjjj in 1:nrow(rSims)){
   
   # 
   ## Output quantities ==============================================================
-  outCov <- rbind(outCov, cbind(covSave, c((burn.in+1):tlimit), rep(jjjj, length(c((burn.in+1):tlimit)))))
+  outCov <- rbind(outCov, cbind(covSave[(burn.in+1):tlimit,], c((burn.in+1):tlimit), rep(jjjj, length(c((burn.in+1):tlimit)))))
 #     apply(X = covSave[(burn.in+1):tlimit,], MARGIN = 1, FUN = sum)
 #   cvTmp <- (sd(totalCov)^2)/mean(totalCov)
 #   CV[jjjj] <- cvTmp

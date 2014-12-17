@@ -25,7 +25,8 @@ Nspp <- length(sppList)
 
 rSims <- read.csv("randomOffsets_r.csv")  
 monoSynch <- numeric(nrow(rSims))
-outSave = matrix(NA,tlimit,Nspp)
+rl <- length(c((burn.in+1):tlimit))
+outSave = matrix(NA,rl,Nspp)
 
 setwd(dir = "../")
 outCov <- rep(NA, 6)
