@@ -8,23 +8,87 @@ library(plyr)
 library(gridExtra)
 
 ####
-#### Read in RDS data
+#### Read in processed RDS data (see script below)
 ####
-mixDfull <- as.data.frame(readRDS("output/outTimeSeries_rVary_mixture.rds"))
-monDfull <- as.data.frame(readRDS("output/outTimeSeries_rVary_monoculture.rds"))
+monD <- readRDS("monocultureCutTS_rVary.rds")
+mixD <- readRDS("mixtureCutTS_rVary.rds")
 
 ####
-#### Get relevant time steps (every 50)
+#### Calculate delta Y: net biodiversity effect
 ####
-tVec <- seq(1, 1000, 50)
-nSims <- length(unique(mixDfull$simulation))
-for(i in 1:nSims){
-  tmpD <- subset(monDfull, simulation==i)
-  tmpD2 <- tmpD[tVec, ]
-}
+# total cover from mixture for species relative cover
+totMix <- apply(X = mixD[,1:4], MARGIN = 1, FUN = sum)
+totMixD <- data.frame(totCov = totMix,
+                      simulation = mixD$simulation)
+totMixAvg <- ddply(totMixD, .(simulation), summarise,
+                   meanCov = mean(totCov))
+
+# average species cover in mixture
+mixM <- melt(mixD[,c(1,2,3,4,6)], id.vars = "simulation")
+sppMixAvg <- ddply(mixM, .(variable, simulation), summarise,
+                   avgCov = mean(value))
+sppMixAvg$totCov <- rep(totMixAvg$meanCov, times = 4)
+sppMixAvg$relCov <- with(sppMixAvg, avgCov/totCov)
+
+# average cover in monoculture by species and simulation
+monM <- melt(monD[,c(1,2,3,4,6)], id.vars = "simulation")
+sppMonAvg <- ddply(mixM, .(variable, simulation), summarise,
+                   monCov = mean(value))
+
+# combine data frames and sum across species
+deltaYD <- merge(sppMixAvg, sppMonAvg, by = c("variable", "simulation"))
+deltaYD$expSpp <- with(deltaYD, relCov*monCov)
+eCov <- ddply(deltaYD, .(simulation), summarise,
+              expY = sum(expSpp))
+deltaY <- totMixAvg$meanCov - eCov$expY
+
+####
+#### Calculate time series metrics
+####
+# temporal stability (community)
+mixD$totC <- apply(mixD[,1:4], MARGIN = 1, sum)
+tsD <- ddply(mixD[,5:7], .(simulation), summarise,
+             ts = mean(totC)/sd(totC))
+
+# community synchrony
+sigC <- ddply(mixD[,5:7], .(simulation), summarise,
+              value = sd(totC))
 
 
-
+#==========================================================#
+#==========================================================#
+#==========================================================#
+#==========================================================#
+#==========================================================#
+# 
+# ####
+# #### Read in RDS data
+# ####
+# mixDfull <- as.data.frame(readRDS("output/outTimeSeries_rVary_mixture.rds"))
+# monDfull <- as.data.frame(readRDS("output/outTimeSeries_rVary_monoculture.rds"))
+# 
+# ####
+# #### Get relevant time steps (every 50) and output
+# ####
+# tVec <- seq(1, 1000, 50)
+# nSims <- length(unique(mixDfull$simulation))
+# monD <- data.frame(ARTR=NA,HECO=NA,POSE=NA,PSSP=NA,timeStep=NA,simulation=NA)
+# mixD <- data.frame(ARTR=NA,HECO=NA,POSE=NA,PSSP=NA,timeStep=NA,simulation=NA)
+# for(i in 1:nSims){
+#   tmpD <- subset(monDfull, simulation==i)
+#   tmpD2 <- tmpD[tVec, ]
+#   monD <- rbind(monD, tmpD2)
+# }
+# for(i in 1:nSims){
+#   tmpD <- subset(mixDfull, simulation==i)
+#   tmpD2 <- tmpD[tVec, ]
+#   mixD <- rbind(mixD, tmpD2)
+# }
+# 
+# monD <- monD[2:nrow(monD),]
+# mixD <- mixD[2:nrow(mixD),]
+# saveRDS(monD, "monocultureCutTS_rVary.rds")
+# saveRDS(mixD, "mixtureCutTS_rVary.rds")
 
 
 #### PREVIOUS PLOTS ####
