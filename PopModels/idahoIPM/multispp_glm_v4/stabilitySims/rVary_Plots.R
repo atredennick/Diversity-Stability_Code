@@ -52,8 +52,42 @@ tsD <- ddply(mixD[,5:7], .(simulation), summarise,
 
 # community synchrony
 sigC <- ddply(mixD[,5:7], .(simulation), summarise,
-              value = sd(totC))
+              value = var(totC))
+sigS <- ddply(mixM, .(simulation, variable), summarise,
+              value = sd(value))
+sigSsum <- ddply(sigS, .(simulation), summarise,
+                 value = (sum(value))^2)
+psiC <- sigC$value / sigSsum$value
 
+# environmental synchrony (from monocultures)
+monD$totC <- apply(monD[,1:4], MARGIN = 1, sum)
+sigE <- ddply(monD[,5:7], .(simulation), summarise,
+              value = var(totC))
+sigSe <- ddply(monM, .(simulation, variable), summarise,
+              value = sd(value))
+sigSesum <- ddply(sigSe, .(simulation), summarise,
+                 value = (sum(value))^2)
+psiE <- sigE$value / sigSesum$value
+
+psiD <- resid(lm(psiC~psiE))
+
+outD <- data.frame(psiC=psiC, psiE=psiE, psiD=psiD, deltaY=deltaY, TS=tsD$ts)
+
+mod <- lm(log(TS)~deltaY+psiE+psiD, data=outD)
+summary(mod)
+# plot(mod)
+
+g1 <- ggplot(outD, aes(x=psiE, y=TS))+
+  geom_point(shape=1, size=4)+
+  stat_smooth(method="lm", color="purple", fill="purple", size=1)+
+  scale_y_continuous(trans = "log")+
+  theme_bw()
+g2 <- ggplot(outD, aes(x=psiD, y=TS))+
+  geom_point(shape=1, size=4)+
+  stat_smooth(method="lm", color="purple", fill="purple", size=1)+
+  scale_y_continuous(trans = "log")+
+  theme_bw()
+g <- grid.arrange(g1,g2,ncol=1)
 
 #==========================================================#
 #==========================================================#
