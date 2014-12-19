@@ -23,7 +23,8 @@ NoOverlap.Inter=T # no overlap of heterospecifics
 compScale=F # not well implemented, but for rescaling competition coefficients
 Nspp <- length(sppList)
 
-rSims <- read.csv("randomOffsets_r.csv")  
+rSims <- read.csv("randomOffsets_r.csv") 
+yrVector <- readRDS("yrVector.rds") #get vector of random years (same across mono and mixture simulations)
 monoSynch <- numeric(nrow(rSims))
 rl <- length(c((burn.in+1):tlimit))
 outSave = matrix(NA,rl,Nspp)
@@ -196,9 +197,7 @@ for(doSim in 1:nrow(rSims)){
     for (i in 2:(tlimit)){
       
       #draw from observed year effects
-      allYrs=c(1:Nyrs)
-      doYear=sample(allYrs,1)
-      yrSave[i]=doYear
+      doYear <- yrVector[i]
       
       #get recruits per area
         cover=covSave[i-1,]; N=Nsave[i-1,]

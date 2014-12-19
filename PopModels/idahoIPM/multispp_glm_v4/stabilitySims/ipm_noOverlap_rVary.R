@@ -20,7 +20,8 @@ NoOverlap.Inter=T # no overlap of heterospecifics
 compScale=F # not well implemented, but for rescaling competition coefficients
 perturbPpt=F
 
-rSims <- read.csv("randomOffsets_r.csv")  
+rSims <- read.csv("randomOffsets_r.csv")  #random offsets for intercepts in vital rate regressions
+yrVector <- readRDS("yrVector.rds") #get vector of random years (same across mono and mixture simulations)
 # rSims <- rSims[1:10,]
 # maxR <- matrix(NA, nrow=length(sppList), ncol=length(changeVec))
 CV <- numeric(nrow(rSims))
@@ -220,10 +221,8 @@ for(jjjj in 1:nrow(rSims)){
   yrSave=rep(NA,tlimit)
   for (i in 2:(tlimit)){
     
-    #draw from observed year effects
-    allYrs=c(1:Nyrs)
-    doYear=sample(allYrs,1)
-    yrSave[i]=doYear
+    #get year for year random effects
+    doYear <- yrVector[i]
     
     #get recruits per area
     cover=covSave[i-1,]; N=Nsave[i-1,]
