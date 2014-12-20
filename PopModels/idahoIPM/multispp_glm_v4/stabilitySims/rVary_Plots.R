@@ -87,7 +87,11 @@ g2 <- ggplot(outD, aes(x=psiD, y=TS))+
   stat_smooth(method="lm", color="purple", fill="purple", size=1)+
   scale_y_continuous(trans = "log")+
   theme_bw()
-g <- grid.arrange(g1,g2,ncol=1)
+g3 <- ggplot(outD, aes(x=deltaY, y=TS))+
+  geom_point(shape=1, size=4)+
+  stat_smooth(method="lm", color="purple", fill="purple", size=1)+
+  theme_bw()
+g <- grid.arrange(g1,g2,g3,ncol=1)
 
 #==========================================================#
 #==========================================================#
