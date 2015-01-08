@@ -76,16 +76,21 @@ outD <- data.frame(psiC=psiC, psiE=psiE, psiD=psiD, deltaY=deltaY, TS=tsD$ts)
 mod <- lm(log(TS)~deltaY+psiE+psiD, data=outD)
 summary(mod)
 # plot(mod)
+modPE <- lm(log(TS)~psiE, data=outD)
+predE <- as.data.frame(exp(predict(modPE, newdata = data.frame(psiE=seq(0.2, 1,0.05)))))
+predE$psiE <- seq(0.2, 1,0.05)
+colnames(predE)[1] <- "TS"
 
 g1 <- ggplot(outD, aes(x=psiE, y=TS))+
   geom_point(shape=1, size=4)+
-  stat_smooth(method="lm", color="purple", fill="purple", size=1)+
-  scale_y_continuous(trans = "log")+
+  geom_line(data=predE, aes(x=psiE, y=TS), color="purple", size=1)+
+#   stat_smooth(method="lm", color="purple", fill="purple", size=1)+
+#   scale_y_continuous(trans = "log")+
   theme_bw()
-g2 <- ggplot(outD, aes(x=psiD, y=TS))+
+g2 <- ggplot(outD, aes(x=abs(psiD), y=TS))+
   geom_point(shape=1, size=4)+
   stat_smooth(method="lm", color="purple", fill="purple", size=1)+
-  scale_y_continuous(trans = "log")+
+#   scale_y_continuous(trans = "log")+
   theme_bw()
 g3 <- ggplot(outD, aes(x=deltaY, y=TS))+
   geom_point(shape=1, size=4)+

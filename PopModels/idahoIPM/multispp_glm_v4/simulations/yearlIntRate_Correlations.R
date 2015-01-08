@@ -8,3 +8,4 @@ M <- cor(allD[,1:4])
 corrplot.mixed(M, lower="ellipse", upper="number", col=c("tomato3","skyblue4"),tl.col="grey35")
 M
 
+cov(allD[,1:4])
