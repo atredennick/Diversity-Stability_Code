@@ -4,7 +4,7 @@
 
 #clear everything, just to be safe 
 rm(list=ls(all=TRUE))
-
+library(rjags)
 sppList=sort(c("PSSP","HECO","POSE","ARTR"))
 alpha.effect=c(0.014,0.017,0.026,0.018) # for spp in alphabetical order
 
