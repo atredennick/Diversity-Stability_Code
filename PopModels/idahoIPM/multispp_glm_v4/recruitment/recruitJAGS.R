@@ -11,8 +11,6 @@ model{
   }
   
   #priors
-  
-  
   # intercepts
   for(s in 1:Nspp){
     u[s]~dunif(0,1)
@@ -22,11 +20,7 @@ model{
       intcpt.gr[g,s]~dnorm(0,g.tau[s])
     }
     for(k in 1:Nspp){
-      
       dd[k,s]~dunif(-10,-0.001)
-      
-      #dd[k,s]~dnorm(0,0.001)
-      #dd[k,s]~djl.dnorm.trunc(0,0.001,-0.0001,-10) # truncated upper limit at -0.001
     }
     intcpt.mu[s]~dnorm(0,0.001)
     intcpt.tau[s]~dgamma(0.001,0.001)

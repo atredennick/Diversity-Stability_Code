@@ -125,36 +125,37 @@ inits[[2]]=list(intcpt.yr=matrix(0.5,Nyrs,Nspp),intcpt.mu=rep(0.2,Nspp),intcpt.t
   dd=matrix(-0.05,Nspp,Nspp),theta=rep(2,Nspp))
   
 
-params=c("intcpt.yr","intcpt.mu","intcpt.tau","intcpt.gr","g.tau","dd","theta","u","lambda") 
+params=c("intcpt.yr","intcpt.mu","intcpt.tau","intcpt.gr","g.tau","dd","theta","u") 
 
 modelFile <- "recruitJAGS.R"
 
-n.Adapt <- 1000
-n.Up <- 1000
-n.Samp <- 2000
+n.Adapt <- 2000
+n.Up <- 5000
+n.Samp <- 5000
 
 jm <- jags.model(modelFile, data=dataJ, n.chains=length(inits),inits = inits, n.adapt = n.Adapt)
 update(jm, n.iter=n.Up)
-# Get sums of square residuals
 zm <- coda.samples(jm, variable.names=params, n.iter=n.Samp, n.thin=10)
-  
-zmStat <- summary(zm)$stat
-tmp=grep("lambda",row.names(zmStat))
-A=row.names(zmStat)[tmp]
-B=zmStat[tmp,1]
-lambda=matrix(NA,dim(y)[1],Nspp)
-C=paste(A,"<-",B,sep="")
-eval(parse(n=length(A),text=C))
-lambda[is.na(lambda)]=0
-par(mfrow=c(2,2))
-for(i in 1:Nspp){
-  plot(y[,i],lambda[,i],xlab="Obs",ylab="Pred",main=sppList[i])
-}
-par(mfrow=c(2,2))
-for(i in 1:Nspp){
-  plot(parents1[,i],lambda[,i],xlab="Parents",ylab="Pred",main=sppList[i])
-}
 
-write.csv(zmStat,outfile,row.names=T)
+saveRDS(zm, "recruitmentParamsMCMC_AllSpp.rds")
+  
+# zmStat <- summary(zm)$stat
+# tmp=grep("lambda",row.names(zmStat))
+# A=row.names(zmStat)[tmp]
+# B=zmStat[tmp,1]
+# lambda=matrix(NA,dim(y)[1],Nspp)
+# C=paste(A,"<-",B,sep="")
+# eval(parse(n=length(A),text=C))
+# lambda[is.na(lambda)]=0
+# par(mfrow=c(2,2))
+# for(i in 1:Nspp){
+#   plot(y[,i],lambda[,i],xlab="Obs",ylab="Pred",main=sppList[i])
+# }
+# par(mfrow=c(2,2))
+# for(i in 1:Nspp){
+#   plot(parents1[,i],lambda[,i],xlab="Parents",ylab="Pred",main=sppList[i])
+# }
+# 
+# write.csv(zmStat,outfile,row.names=T)
 # tmp=paste("DIC",out$DIC,sep=",")
 # write.table(tmp,outfile,col.names=F,row.names=F,append=T)
