@@ -3,7 +3,6 @@
 rm(list=ls(all=TRUE))
 
 sppList=c("ARTR","HECO","POSE","PSSP")
-outfile="recruit_params_GnoG.csv"
 #--------------------------------------------------------
 
 # get recruitment data
@@ -12,7 +11,7 @@ for(i in 1:Nspp){
   infile1=paste("../../speciesData/",sppList[i],"/recArea.csv",sep="")
   tmpD=read.csv(infile1)
   
-  tmpD$Group=as.factor(substr(tmpD$quad,1,1)) #add by Chengjin
+  tmpD$Group=as.factor(tmpD$Group) #add by Chengjin
 
   
   tmpD=tmpD[,c("quad","year","NRquad","totParea","Group")]
@@ -28,12 +27,12 @@ D[is.na(D)]=0  # replace missing values
 
 
 ##then we moved some specific points:
-tmp2<-which(D$quad=="A12" & D$year==44)
-tmp3<-which(D$quad=="B1"  & D$year==44)
+# tmp2<-which(D$quad=="A12" & D$year==44)
+# tmp3<-which(D$quad=="B1"  & D$year==44)
 
 
-tmpONE<-c(tmp2,tmp3)
-if(length(tmpONE)>0) D<-D[-tmpONE,]
+# tmpONE<-c(tmp2,tmp3)
+# if(length(tmpONE)>0) D<-D[-tmpONE,]
 
 
 # calculate mean cover by group and year
@@ -135,9 +134,12 @@ n.Samp <- 5000
 
 jm <- jags.model(modelFile, data=dataJ, n.chains=length(inits),inits = inits, n.adapt = n.Adapt)
 update(jm, n.iter=n.Up)
-zm <- coda.samples(jm, variable.names=params, n.iter=n.Samp, n.thin=10)
+out <- coda.samples(jm, variable.names=params, n.iter=n.Samp, n.thin=10)
 
-saveRDS(zm, "recruitmentParamsMCMC_AllSpp.rds")
+iterations <- n.Samp
+outMCMC <- rbind(out[[1]][(iterations-999):iterations,], 
+                 out[[2]][(iterations-999):iterations,])
+saveRDS(object = outMCMC, file = "recruitmentParamsMCMC_AllSpp.rds")
   
 # zmStat <- summary(zm)$stat
 # tmp=grep("lambda",row.names(zmStat))
