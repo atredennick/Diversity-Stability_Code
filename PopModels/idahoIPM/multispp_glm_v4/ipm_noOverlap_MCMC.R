@@ -3,8 +3,8 @@
 # for intraspecific competition only or intra- and interspecific competition
 
 # ATT 8/26/14
-outfile1="ipm_cover.csv"
-outfile2="stable_size.csv"
+# outfile1="ipm_cover.csv"
+# outfile2="stable_size.csv"
 # obsClimateFile="Climate.csv"
 perturbPpt=F
 perturbTemp=F
@@ -17,7 +17,7 @@ sppList=c("ARTR","HECO","POSE","PSSP")
 bigM=c(75,75,50,50)     #Set matrix dimension for each species
 maxSize=c(3000,202,260,225)    # in cm^2: PSSP=225 HECO=202  POSE=260  ARTR=3000  # minSize=0.2  cm^2
 Nyrs=22
-doGroup=1  # NA for spatial avg., values 1-6 for a specific group
+doGroup=NA  # NA for spatial avg., values 1-6 for a specific group
 constant=F  
 NoOverlap.Inter=F
 compScale=F
@@ -26,7 +26,24 @@ compScale=F
 # (I) LOAD VITAL RATE PARAMETERS & FUNCTIONS
 #============================================================
 Nspp=length(sppList)
-
+SparsMCMC <- readRDS("./survival/survivalParamsMCMC4IPM.rds")
+GparsMCMC <- readRDS("./growth/growthParamsMCMC4IPM.rds")
+## survival function: probability an individual of size u survives  (u is on log scale)
+S=function(u,W,Spars,doYear,doSpp){
+  mu=Spars$intcpt.yr[doYear,doSpp]+(Spars$slope[doSpp]+Spars$slope.yr[doYear,doSpp])*u+
+    W%*%(Spars$nb[doSpp,])
+  return(inv.logit(mu))
+}
+## growth function
+G=function(v,u,W,Gpars,doYear,doSpp){
+  mu=Gpars$intcpt.yr[doYear,doSpp]+
+    (Gpars$slope[doSpp]+Gpars$slope.yr[doYear,doSpp])*u+
+    W%*%(Gpars$nb[doSpp,])
+  
+  sigma2=Gpars$sigma2.a[doSpp]*exp(Gpars$sigma2.b[doSpp]*mu)
+  out=dnorm(v,mu,sqrt(sigma2))
+  out
+}
 
 #============================================================================================#
 # (II) Simulation length, Matrix size and initial vectors
@@ -167,12 +184,18 @@ Nsave[1,]=sumN(nt,h)
 
 yrSave=rep(NA,tlimit)
 for (t in 2:(tlimit)){
-  # set up survival parameters and function
-  source("./survival/import2ipm_MCMC.r")
-  # set up growth parameters and function
-  source("./growth/import2ipm_MCMC.r")
+  #get growth and survival parameters
+  Gpars <- GparsMCMC[[t]]
+  Spars <- SparsMCMC[[t]]
   # set up recruitment parameters and function
   source("./recruitment/import2ipm_MCMC.r")
+  
+  # model spatial group variation (or not)
+  if(!is.na(doGroup)){
+    Spars$intcpt.yr=Spars$intcpt.yr+Spars$intcpt.gr[doGroup,]
+    Gpars$intcpt.yr=Gpars$intcpt.yr+Gpars$intcpt.gr[doGroup,]
+    Rpars$intcpt.yr=Rpars$intcpt.yr+matrix(Rpars$intcpt.gr[doGroup,],Nyrs,Nspp,byrow=T)
+  }
   
   #draw from observed year effects
   allYrs=c(1:Nyrs)
@@ -241,7 +264,7 @@ for (t in 2:(tlimit)){
   covSave[t,]=sumCover(v,nt,h,A)  # store the cover as cm^2/cm^2
   Nsave[t,]=sumN(nt,h)
   
-  print(t)
+  print(paste("Done with year",t))
   flush.console()
   
   if(sum(is.na(nt))>0) browser()  

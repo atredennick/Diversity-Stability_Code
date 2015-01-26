@@ -2,7 +2,21 @@
 # then define growth function
 
 GparMCMC <- list()
+tlimit=2500 ## number of years to simulate
+burn.in=500    # years to cut before calculations
+sppList=c("ARTR","HECO","POSE","PSSP")
+bigM=c(75,75,50,50)     #Set matrix dimension for each species
+maxSize=c(3000,202,260,225)    # in cm^2: PSSP=225 HECO=202  POSE=260  ARTR=3000  # minSize=0.2  cm^2
+Nyrs=22
+doGroup=NA  # NA for spatial avg., values 1-6 for a specific group
+constant=F  
+NoOverlap.Inter=F
+compScale=F
 
+#============================================================
+# (I) LOAD VITAL RATE PARAMETERS & FUNCTIONS
+#============================================================
+Nspp=length(sppList)
 for(jjj in 1:tlimit){
   # growth parameters
   Gpars=list(intcpt=rep(NA,Nspp),intcpt.yr=matrix(0,Nyrs,Nspp),intcpt.gr=matrix(0,6,Nspp),
@@ -14,7 +28,7 @@ for(jjj in 1:tlimit){
   mcDraw <- sample(seq(1,2000,1), size = 1)
   
   for(i in 1:Nspp){
-    infile=paste("growth/Growth_paramsMCMC_",sppList[i],".rds",sep="")
+    infile=paste("Growth_paramsMCMC_",sppList[i],".rds",sep="")
     Gdata=readRDS(infile)
     Gdata <- as.data.frame(Gdata[mcDraw,]) #get one row from the MCMC chain
     Gdata$Coef <- c(rep("W", 4),
@@ -50,17 +64,17 @@ for(jjj in 1:tlimit){
     tmp=which(Gdata$Coef=="W")
     if(length(tmp)>0) Gpars$nb[i,]=Gdata$value[tmp]
     
-    alphaG <- read.csv("./growth/alphaGrowth.csv")
+    alphaG <- read.csv("alphaGrowth.csv")
     Gpars$alpha[i,]=alphaG$alpha
     Gpars$sigma2.a[i]=Gdata$value[which(Gdata$Coef=="sigma2.a")]
     Gpars$sigma2.b[i]=Gdata$value[which(Gdata$Coef=="sigma2.b")]
   } # next i
   rm(Gdata)
   GparMCMC[[length(GparMCMC)+1]] <- Gpars
-  print(paste("Retrieved parameter set ", jjj, "out of", tlimit, "."))
+  print(paste("Retrieved growth parameter set ", jjj, "out of", tlimit, "."))
 } #end list loop
 
-saveRDS(GparMCMC,"growthParamsMCMC.rds")
+saveRDS(GparMCMC,"growthParamsMCMC4IPM.rds")
 # 
 # # growth function
 # G=function(v,u,W,Gpars,doYear,doSpp){
