@@ -57,18 +57,18 @@ for(jjj in 1:tlimit){
   } # next i
   rm(Gdata)
   GparMCMC[[length(GparMCMC)+1]] <- Gpars
-  print(paste("Done with parameter set ", jjj, "out of", tlimit, "."))
+  print(paste("Retrieved parameter set ", jjj, "out of", tlimit, "."))
 } #end list loop
 
-
-
-# growth function
-G=function(v,u,W,Gpars,doYear,doSpp){
-  mu=Gpars$intcpt[doSpp]+Gpars$intcpt.yr[doYear,doSpp]+
-    (Gpars$slope[doSpp]+Gpars$slope.yr[doYear,doSpp])*u+
-    W%*%(Gpars$nb[doSpp,])
-  
-  sigma2=Gpars$sigma2.a[doSpp]*exp(Gpars$sigma2.b[doSpp]*mu)
-  out=dnorm(v,mu,sqrt(sigma2))
-  out
-}
+saveRDS(GparMCMC,"growthParamsMCMC.rds")
+# 
+# # growth function
+# G=function(v,u,W,Gpars,doYear,doSpp){
+#   mu=Gpars$intcpt[doSpp]+Gpars$intcpt.yr[doYear,doSpp]+
+#     (Gpars$slope[doSpp]+Gpars$slope.yr[doYear,doSpp])*u+
+#     W%*%(Gpars$nb[doSpp,])
+#   
+#   sigma2=Gpars$sigma2.a[doSpp]*exp(Gpars$sigma2.b[doSpp]*mu)
+#   out=dnorm(v,mu,sqrt(sigma2))
+#   out
+# }
