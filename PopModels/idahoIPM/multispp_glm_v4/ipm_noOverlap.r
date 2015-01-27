@@ -37,7 +37,7 @@ Nspp=length(sppList)
 # set up survival parameters and function
 source("./survival/import2ipm_noOverlap.r")
 # set up growth parameters and function
-source("./growth/import2ipm_noOverlap.r")
+source("./growth/cache/import2ipm_noOverlap.r")
 # set up recruitment parameters and function
 source("./recruitment/import2ipm.r")
 

@@ -11,8 +11,8 @@ perturbTemp=F
 # climYrSave=read.csv("climYears.csv")  # use same sequence of years used for observed run
 # randYrSave=read.csv("randYears.csv")
 A=10000 #Area of 100cm x 100cm quadrat
-tlimit=2500 ## number of years to simulate
-burn.in=500    # years to cut before calculations
+tlimit=1000 ## number of years to simulate
+burn.in=50    # years to cut before calculations
 sppList=c("ARTR","HECO","POSE","PSSP")
 bigM=c(75,75,50,50)     #Set matrix dimension for each species
 maxSize=c(3000,202,260,225)    # in cm^2: PSSP=225 HECO=202  POSE=260  ARTR=3000  # minSize=0.2  cm^2
@@ -197,6 +197,13 @@ for (t in 2:(tlimit)){
     Rpars$intcpt.yr=Rpars$intcpt.yr+matrix(Rpars$intcpt.gr[doGroup,],Nyrs,Nspp,byrow=T)
   }
   
+  if(constant==T){
+    #turn off random year effects  
+    Rpars$intcpt.yr=matrix(Rpars$intcpt.mu,Nyrs,Nspp,byrow=T)
+    Gpars$intcpt.yr[]=Gpars$intcpt;Gpars$slope.yr[]=Gpars$slope
+    Spars$intcpt.yr[]=Spars$intcpt;Spars$slope.yr[]=Spars$slope 
+  }
+  
   #draw from observed year effects
   allYrs=c(1:Nyrs)
   doYear=sample(allYrs,1)
@@ -256,7 +263,7 @@ for (t in 2:(tlimit)){
       # make kernels and project
       K.matrix=make.K.matrix(v[[doSpp]],WmatG[[doSpp]],WmatS[[doSpp]],Rpars,rpa,Gpars,Spars,doYear,doSpp)	
       new.nt[[doSpp]]=K.matrix%*%nt[[doSpp]] 
-      sizeSave[[doSpp]][,i]=new.nt[[doSpp]]/sum(new.nt[[doSpp]])  
+      sizeSave[[doSpp]][,t]=new.nt[[doSpp]]/sum(new.nt[[doSpp]])  
     }    
   } # next species
   
@@ -305,6 +312,7 @@ cvVec <- numeric(lim)
 for(i in 1:lim){
   tmp <- sample(seq(1,(length(totalCov)-22)), 1)
   tmp2 <- seq(tmp,tmp+21)
+#   tmp2 <- sample(seq(1,length(totalCov)-22), 22)
   tmpCov <- totalCov[tmp2]
   cvVec[i] <- (sd(tmpCov))/mean(tmpCov)
 }
@@ -314,5 +322,7 @@ plot(density(cvVec, adjust=4), lwd=4, main="", xlab="community temporal CV", col
 # abline(v = mean(cvVec), lty=2, lwd=3, col="grey25")
 abline(v = median(cvVec), lty=3, col="coral", lwd=3)
 abline(v=0.2, lwd=3, lty=1)
+
+saveRDS(cvVec, file = "DemoEnvStoch.rds")
 
 

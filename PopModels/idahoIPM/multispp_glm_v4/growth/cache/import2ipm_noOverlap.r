@@ -7,7 +7,7 @@ Gpars=list(intcpt=rep(NA,Nspp),intcpt.yr=matrix(0,Nyrs,Nspp), intcpt.gr=matrix(0
   nb=matrix(0,Nspp,Nspp),alpha=matrix(NA,Nspp,Nspp),
   sigma2.a=rep(NA,Nspp),sigma2.b=rep(NA,Nspp))
 for(i in 1:Nspp){
-  infile=paste("growth/Growth_params_",sppList[i],".csv",sep="")
+  infile=paste("growth/cache/Growth_params_",sppList[i],".csv",sep="")
   Gdata=read.csv(infile)
   Gpars$intcpt[i]=Gdata$Intercept[1]
   tmp=which(names(Gdata)=="Group")
