@@ -16,7 +16,7 @@ library(boot) #for inverse logit function (inv.logit)
 ################################################################################
 ## Some global variables:
 nSims=5
-nYrs=22
+nYears=20
 nGrps=6
 startYr=32
 #qName="Q1"
@@ -27,6 +27,10 @@ sppList=c("ARTR","HECO","POSE","PSSP")
 minSize=0.25
 maxSize=c(8000,500,500,500)
 myCol=c("black","gold1","blue","red")
+
+################################################################################
+## Get vital rate parameters:
+
 
 ################################################################################
 ## Vital rate functions:
@@ -117,14 +121,35 @@ getCrowding=function(plants,alpha,L,expand){
 }
 
 ################################################################################
-# Function to simulate community:
-simComm <- function(nYrs, nSims, nSpp, doGroup){
-  bigA=array(NA,dim=c((nYrs+1),nSpp,nSims))
-  bigN=array(NA,dim=c((nYrs+1),nSpp,nSims))
+## Function to simulate one time step:
+simOne <- function(nSpp, doGroup, plants){
+  doYr=sample(1,yrList) #draw year effects
+  nextplants=plants
+  ##recruitment
+  newplants=recruit(Rpars,sizes=plants[,2],spp=plants[,1],doYear=doYr,L,expand)
+  for(ss in 1:nSpp){ #loop through species for survival and growth
+    if(N[tt,ss]>0){ #make sure spp ss is not extinct
+      ##growth
+      W=getCrowding(plants,Gpars$alpha[ss,],L,expand)
+      newsizes=grow(Gpars,doSpp=ss,doYear=doYr,sizes=plants[,2],crowding=W)
+      if(sum(newsizes==Inf)>0) browser()
+      if(is.na(sum(newsizes))) browser()
+      ##survival
+      #uses same W as growth            
+      live=survive(Spars,doSpp=ss,doYear=doYr,sizes=plants[,2],crowding=W)
+      #put it all together
+      tmp=which(plants[,1]==ss) #only alter plants of focal spp        
+      nextplants[tmp,2]=newsizes[tmp]*live[tmp] #update with G*S
+    } #end IF no plants
+  } #next species (ss) 
+  
+  nextplants=nextplants[nextplants[,2]>0,] #remove dead plants 
+  nextplants=rbind(nextplants,newplants) #add recruits
+  return(nextplants)
 }
 
 ################################################################################
-# Get intitial conditions for model
+## Get intitial conditions for model
 Nspp=length(sppList)
 init.plants=list(NULL)
 lastID=rep(0,4)
@@ -143,8 +168,21 @@ par(mgp=c(2,0.5,0),tcl=-0.2)
 symbols(x = init.plants[,3], y = init.plants[,4], circles = sqrt(init.plants[,2]/pi), fg=myCol[init.plants[,1]],
         xlim=c(0,L*expand),ylim=c(0,L*expand),main ="Time=1",xlab="x",ylab="y",inches=F,lwd=2)
 
+#turn init.plants to cover
+initArea <- aggregate(init.plants[,2],by=list(init.plants[,1]),FUN=sum)
 
+################################################################################
+## Run simulation
+A <- matrix(0,nYears,Nspp) #storage matrix
+A[1,1:4] <- initArea[,2] #initial conditions
+doPlants <- init.plants
+for(tt in 1:nYears){
+  plantsNow <- simOne(nSpp = 4, doGroup = NA, plants = doPlants)
+  A[tt,] <- aggregate(plantsNow[,2],by=list(plantsNow[,1]),FUN=sum)
+  doPlants <- plantsNow
+}
 
-
+################################################################################
+## Save output
 
 
