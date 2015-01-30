@@ -7,11 +7,11 @@
 ####
 #### Write BUGS code for NIMBLE
 ####
-g_code <- ({
+g_code <- nimbleCode({
   for(i in 1:totN){
     logsize1[i]~dnorm(mu[i],tau3[i])
     mu[i]<-intcpt.yr[Yr[i]]+Gbeta[G[i]]+slope.yr[Yr[i]]*logsize0[i]+inprod(NBbeta.mu[1:Nspp],crowd[i,])  
-    tau2[i]<-1/(tau*exp(tauSize*mu[i]))  ##I like this, similar with ones from glm
+    tau2[i]<-1/(tau*exp(tauSize*mu[i])) 
     tau3[i]<-max(tau2[i],0.00000001)  
   }
   tau~dnorm(0,0.001)
@@ -29,7 +29,7 @@ g_code <- ({
     intcpt.yr[k]~dnorm(intcpt.mu,intcpt.tau)
   }
   for(m in 1:Nspp){
-    NBbeta.mu[m]~dnorm(0,NBbeta.tau)I(-2,-0.00001) ##change this to meet BUGS(too wide to fail)
+    NBbeta.mu[m]~dnorm(0,NBbeta.tau)
   }
   NBbeta.tau~dgamma(0.5,0.5)
 })
