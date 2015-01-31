@@ -82,12 +82,12 @@ for(site_now in 1:n_sites){
     # Get initial values from quick lm
     mod <- lm(logsize1~logsize0+crowd)
     
-    constants <- list(totN=totN)
-    data <- list(size=logsize1, lagsize=logsize0)
+    constants <- list(totN=totN, lagsize=logsize0)
+    data <- list(size=logsize1)
     g_code <- nimbleCode({
-      for(i in 2:totN){
+      for(i in 1:totN){
         size[i] ~ dnorm(mu[i], tau)
-        mu[i] <- (intcpt + slope*lagsize[i])
+        mu[i] <- intcpt + slope*lagsize[i]
       }
       tau ~ dgamma(0.001, 0.001)
       intcpt ~ dnorm(0, 0.001)
@@ -100,7 +100,9 @@ for(site_now in 1:n_sites){
     Rmcmc <- buildMCMC(mcmcspec)
     Cmodel <- compileNimble(Rmodel)
     Cmcmc <- compileNimble(Rmcmc, project = Cmodel)
-    Cmcmc$run(1000)
+    Cmcmc$run(10000)
+    Cmcmc$run(50000)
+    samples <- as.matrix(Cmcmc$mvSamples)
     
   } # end species loop for vital rate regressions
 } # end site loop
