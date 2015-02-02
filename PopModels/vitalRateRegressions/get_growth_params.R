@@ -103,14 +103,26 @@ for(site_now in 1:n_sites){
     iterations <- 50000
     burn_in <- 10000
     adapt <- 1000
+    print(paste("Starting on", spp_list[spp_now], "for", site, sep=""))
     mod <- jags.model("../../Functions/growth_BUGS.R", data=data_jags, inits=inits, n.chains=2, n.adapt=adapt)
     update(mod, n.iter = (burn_in))
     out <- coda.samples(mod, params, n.iter=iterations, n.thin=50)
-    outStats <- summary(out)$stat
-    outQuants <- summary(out)$quantile
+    
+    out_stats <- summary(out)$stat
+    out_quants <- summary(out)$quantile
+    out_gelman <- gelman.diag(out)
     outMCMC <- rbind(out[[1]], out[[2]])
+    
     out_dir <- paste("../vitalRateResults/", site, "/", sep="")
+    out_file_stats <- paste(out_dir, "growth_stats_", site, "_", spp_list[spp_now], ".csv", sep="")
+    out_file_quants <- paste(out_dir, "growth_quants_", site, "_", spp_list[spp_now], ".csv", sep="")
+    out_file_gelman <- paste(out_dir, "growth_gelman_", site, "_", spp_list[spp_now], ".csv", sep="")
     out_file_grow <- paste(out_dir,"MCMC_growth_", site, "_", spp_list[spp_now], ".rds", sep="")
+    
+    write.csv(out_stats, out_file_stats)
+    write.csv(out_quants, out_file_quants)
+    write.csv(out_gelman, out_file_gelman)
     saveRDS(object = outMCMC, file = out_file_grow)
+    print(paste("Done with", spp_list[spp_now], "for", site, sep=""))
   } # end species loop for vital rate regressions
 } # end site loop
