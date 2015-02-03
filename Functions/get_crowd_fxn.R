@@ -3,7 +3,7 @@ get_crowding <- function(vital_data, dist_data, n_spp, do_spp,
   crowd <- matrix(NA,dim(vital_data)[1],n_spp)
   for(i in 1:dim(grow_data)[1]){
     tmp_data <- subset(dist_data,year==vital_data$year[i] & quad==vital_data$quad[i])
-    focal <- which(tmp_data$trackID==vital_data$trackID[i] & tmp_data$nbSpp==do_spp)
+    focal <- which(tmp_data$trackID==vital_data$trackid[i] & tmp_data$nbSpp==do_spp)
     xx <- tmp_data$x[focal]
     yy <- tmp_data$y[focal]
     tmp_data$distance <- sqrt((xx-tmp_data$x)^2+(yy-tmp_data$y)^2)
