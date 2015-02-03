@@ -29,8 +29,8 @@ source("../../Functions/get_crowd_fxn.R")
 ####
 data_dir <- "../../Data/"
 site_list <- list.files(data_dir)
-site_list <- site_list[which(site_list!="alpha_list.csv")]
-alpha_all <- read.csv("../../Data/alpha_list.csv")
+site_list <- site_list[which(site_list!="alpha_list_growth.csv")]
+alpha_all <- read.csv("../../Data/alpha_list_growth.csv")
 colnames(alpha_all) <- tolower(colnames(alpha_all))
 n_sites <- length(site_list)
 
@@ -60,6 +60,7 @@ for(site_now in 1:n_sites){
     ## Get growth data
     grow_file <- paste(site_dir, spp_list[spp_now], "/growDnoNA.csv", sep="")
     grow_data <- read.csv(grow_file)
+    colnames(grow_data) <- tolower(colnames(grow_data))
     
     ## Add group column ONLY if missing
     if("group" %in% colnames(grow_data)==FALSE) {grow_data$group <- as.factor(substr(grow_data$quad,1,1))}
@@ -121,7 +122,7 @@ for(site_now in 1:n_sites){
     
     write.csv(out_stats, out_file_stats)
     write.csv(out_quants, out_file_quants)
-    write.csv(out_gelman, out_file_gelman)
+    write.csv(out_gelman[[1]], out_file_gelman)
     saveRDS(object = outMCMC, file = out_file_grow)
     print(paste("Done with", spp_list[spp_now], "for", site, sep=""))
   } # end species loop for vital rate regressions
