@@ -38,7 +38,7 @@ n_sites <- length(site_list)
 ####
 #### Begin looping through sites and species for vital rate regressions ----------------------
 ####
-for(site_now in 1:n_sites){
+for(site_now in 2:n_sites){
   site <- site_list[site_now]
   site_dir <- paste(data_dir, site, "/", sep="")
   spp_list <- list.files(site_dir)
