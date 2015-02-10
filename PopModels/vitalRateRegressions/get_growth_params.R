@@ -38,7 +38,7 @@ n_sites <- length(site_list)
 ####
 #### Begin looping through sites and species for vital rate regressions ----------------------
 ####
-for(site_now in 2:n_sites){
+for(site_now in 1:n_sites){
   site <- site_list[site_now]
   site_dir <- paste(data_dir, site, "/", sep="")
   spp_list <- list.files(site_dir)
@@ -93,7 +93,7 @@ for(site_now in 2:n_sites){
     inits=list(1)
     inits[[1]]=list(intcpt.mu=0, intcpt.tau=1, intcpt.yr=rep(0,Nyears),
                     intG=rep(0.1,Ngroups), slope.mu=0, slope.tau=1,
-                    slope.yr=rep(0,Nyears), NBbeta.mu=rep(-0.2,Nspp),
+                    slope.yr=rep(0,Nyears), NBbeta.mu=rep(0.2,Nspp),
                     NBbeta.tau=0.2, tauGroup=2, tau=1, tauSize=1)
     
     inits[[2]]=list(intcpt.mu=-1, intcpt.tau=0.1, intcpt.yr=rep(-1,Nyears),
@@ -101,18 +101,23 @@ for(site_now in 2:n_sites){
                     slope.yr=rep(-1,Nyears), NBbeta.mu=rep(-0.5,Nspp),
                     NBbeta.tau=0.1, tauGroup=1, tau=0.1, tauSize=0.1)
     
+    inits[[3]]=list(intcpt.mu=0.1, intcpt.tau=0.2, intcpt.yr=rep(0.1,Nyears),
+                    intG=rep(0.2,Ngroups), slope.mu=0.5, slope.tau=0.01,
+                    slope.yr=rep(0.1,Nyears), NBbeta.mu=rep(0,Nspp),
+                    NBbeta.tau=0.01, tauGroup=0.5, tau=0.5, tauSize=0.5)
+    
     iterations <- 50000
     burn_in <- 10000
     adapt <- 1000
     print(paste("Starting on", spp_list[spp_now], "for", site, sep=""))
-    mod <- jags.model("../../Functions/growth_BUGS.R", data=data_jags, inits=inits, n.chains=2, n.adapt=adapt)
+    mod <- jags.model("../../Functions/growth_BUGS.R", data=data_jags, inits=inits, n.chains=length(inits), n.adapt=adapt)
     update(mod, n.iter = (burn_in))
     out <- coda.samples(mod, params, n.iter=iterations, n.thin=50)
     
     out_stats <- summary(out)$stat
     out_quants <- summary(out)$quantile
     out_gelman <- gelman.diag(out)
-    outMCMC <- rbind(out[[1]], out[[2]])
+    outMCMC <- rbind(out[[1]], out[[2]], out[[3]])
     
     out_dir <- paste("../vitalRateResults/", site, "/", sep="")
     out_file_stats <- paste(out_dir, "growth_stats_", site, "_", spp_list[spp_now], ".csv", sep="")

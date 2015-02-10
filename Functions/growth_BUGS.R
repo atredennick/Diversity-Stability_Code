@@ -34,7 +34,7 @@ model{
   }
   
   for(m in 1:Nspp){
-    NBbeta.mu[m]~dnorm(0,NBbeta.tau) T(-2,-0.000001) ##change this to meet BUGS(too wide to fail)
+    NBbeta.mu[m]~dnorm(0,NBbeta.tau) #T(-2,-0.000001) ##change this to meet BUGS(too wide to fail)
   }
   NBbeta.tau~dgamma(0.5,0.5)
 }
