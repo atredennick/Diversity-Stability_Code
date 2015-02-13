@@ -15,7 +15,7 @@ Rpars=list(intcpt.mu=rep(0,Nspp),intcpt.yr=matrix(0,Nyrs,Nspp),intcpt.tau=rep(10
  tmp=paste("Rpars$",row.names(Rdata),"<-",Rdata[,1],sep="")
  eval(parse(n=dim(Rdata)[1],text=tmp))
  for(i in 1:Nspp){
-   infile=paste("../speciesData/",sppList[i],"/recSize.csv",sep="")
+   infile=paste("../../Data/Idaho/",sppList[i],"/recSize.csv",sep="")
    recSize=read.csv(infile)
    Rpars$sizeMean[i]=mean(log(recSize$area))
    Rpars$sizeVar[i]=var(log(recSize$area))
@@ -27,14 +27,14 @@ rm(Rdata)
 # define recruitment function
 #number of recruits per area produced 
 # cover is stored in absolute area (cm^2)
-get.rpa=function(Rpars,cover,doYear){
+get.rpa=function(Rpars,cover,doYear,doGroup){
     # cover is in m^2 per m^2; convert to % scale:
     cover2=cover*100
     # calculate recruits
     Nspp=length(cover)
     mu=rep(NA,Nspp)
     for(i in 1:Nspp){
-      mu[i]=cover2[i]*exp(Rpars$intcpt.yr[doYear,i]+sqrt(cover2)%*%Rpars$dd[i,]) 
+      mu[i]=cover2[i]*exp(Rpars$intcpt.yr[doYear,i]+Rpars$intcpt.gr[doGroup,i]+sqrt(cover2)%*%Rpars$dd[i,]) 
     }
     if(sum(is.na(mu))>0) browser() # stop for errors
     rpa=mu/(cover*A)  # convert from number recruits to recruits per cm^2

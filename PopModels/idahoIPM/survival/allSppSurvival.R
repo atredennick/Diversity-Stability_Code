@@ -13,7 +13,7 @@ for(spp in 1:length(sppList)){
   doSpp=sppList[spp]
   outfile=paste("Surv_params_",doSpp,".csv",sep="")
   
-  growDfile=paste("../../speciesData/",doSpp,"/survD.csv",sep="")
+  growDfile=paste("../../../Data/Idaho/",doSpp,"/survD.csv",sep="")
   growD=read.csv(growDfile)
 #   growD$Group=as.factor(substr(growD$quad,1,1)) ##add Group information
   
@@ -36,7 +36,7 @@ for(spp in 1:length(sppList)){
 
   # calculate crowding 
   for(i in 1:length(sppList)){
-    distDfile=paste("../../speciesData/",sppList[i],"/",sppList[i],"_genet_xy.csv",sep="")
+    distDfile=paste("../../../Data/Idaho/",sppList[i],"/",sppList[i],"_genet_xy.csv",sep="")
     if(i==1){
       distD=read.csv(distDfile)
       distD$nbSpp=sppList[i]  
@@ -94,7 +94,8 @@ for(spp in 1:length(sppList)){
   #random year and group effects
   params <- as.data.frame(outINLA$summary.random$yearID[,1:2])
   params <- cbind(params, outINLA$summary.random$year[,2])
-  names(params) <- c("Year", "Intercept.yr", "logarea.yr")
+  params <- cbind(params, c(outINLA$summary.random$GroupID[,2],rep(NA,nrow(params)-6)))
+  names(params) <- c("Year", "Intercept.yr", "logarea.yr", "Group")
   #fixed effects
   fixed <- as.data.frame(outINLA$summary.fixed)[,1:2]
   tmp=matrix(NA,dim(params)[1],nrow(fixed))
@@ -102,7 +103,7 @@ for(spp in 1:length(sppList)){
   tmp[1,]=fixed[,1]
   params=cbind(params,tmp)
   params$alpha=NA; params$alpha[1:length(sppList)]=alpha.effect
-  colnames(params)[4] <- "Intercept"
+  colnames(params)[5] <- "Intercept"
 
   # write output
   write.table(params,outfile,row.names=F,sep=",")

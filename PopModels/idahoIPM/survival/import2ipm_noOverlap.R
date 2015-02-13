@@ -5,7 +5,7 @@
 # survival parameters
 Spars=list(intcpt=rep(NA,Nspp),intcpt.yr=matrix(0,Nyrs,Nspp),
            slope=rep(NA,Nspp),slope.yr=matrix(0,Nyrs,Nspp),
-           nb=matrix(0,Nspp,Nspp),
+           nb=matrix(0,Nspp,Nspp),intcpt.gr=matrix(0,6,Nspp),
            alpha=matrix(NA,Nspp,Nspp))
 
 # nb.yr=array(0,dim=c(Nspp,Nyrs,Nspp)),
@@ -58,8 +58,8 @@ rm(Sdata)
 ## survival function: probability an individual of size u survives  (u is on log scale)
 
 ##crowding (w) is based on the discretized size points...(mid-points)
-S=function(u,W,Spars,doYear,doSpp){
-  mu=Spars$intcpt[doSpp]+Spars$intcpt.yr[doYear,doSpp]+
+S=function(u,W,Spars,doYear,doSpp,doGroup){
+  mu=Spars$intcpt[doSpp]+Spars$intcpt.yr[doYear,doSpp]+Spars$intcpt.gr[doGroup,doSpp]+
      (Spars$slope[doSpp]+Spars$slope.yr[doYear,doSpp])*u+
      W%*%(Spars$nb[doSpp,])
 #   mu=Spars$intcpt[doSpp]+Spars$intcpt.yr[doYear,doSpp]+
