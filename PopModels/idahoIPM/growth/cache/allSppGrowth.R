@@ -17,7 +17,7 @@ for(spp in 1:length(sppList)){
   
   outfile=paste("Growth_params_",doSpp,".csv",sep="")
   
-  growDfile=paste("../../speciesData/",doSpp,"/growDnoNA.csv",sep="")
+  growDfile=paste("../../../../Data/Idaho/",doSpp,"/growDnoNA.csv",sep="")
   growD=read.csv(growDfile)
 #   growD$Group=as.factor(substr(growD$quad,1,1)) ##add Group information
   
@@ -44,7 +44,7 @@ for(spp in 1:length(sppList)){
 
   # calculate crowding 
   for(i in 1:length(sppList)){
-    distDfile=paste("../../speciesData/",sppList[i],"/",sppList[i],"_genet_xy.csv",sep="")
+    distDfile=paste("../../../../Data/Idaho/",sppList[i],"/",sppList[i],"_genet_xy.csv",sep="")
     if(i==1){
       distD=read.csv(distDfile)
       distD$nbSpp=sppList[i]  

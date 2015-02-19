@@ -36,8 +36,8 @@ for(i in 1:Nspp){
 rm(Gdata)
 
 # growth function
-G=function(v,u,W,Gpars,doYear,doSpp,doGroup){
-  mu=Gpars$intcpt[doSpp]+Gpars$intcpt.gr[doGroup,doSpp]+Gpars$intcpt.yr[doYear,doSpp]+(Gpars$slope[doSpp]+Gpars$slope.yr[doYear,doSpp])*u+
+G=function(v,u,W,Gpars,doYear,doSpp){
+  mu=Gpars$intcpt[doSpp]+Gpars$intcpt.yr[doYear,doSpp]+(Gpars$slope[doSpp]+Gpars$slope.yr[doYear,doSpp])*u+
     W%*%(Gpars$nb[doSpp,])
   sigma2=Gpars$sigma2.a[doSpp]*exp(Gpars$sigma2.b[doSpp]*mu)
   out=dnorm(v,mu,sqrt(sigma2))
