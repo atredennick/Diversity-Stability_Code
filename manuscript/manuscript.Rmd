@@ -1,0 +1,75 @@
+---
+layout: 12pt
+header-includes:
+   - \usepackage{lineno}
+   - \linenumbers
+   - \usepackage{setspace}
+   - \doublespacing
+bibliography: ~/Dropbox/Bibliography/CoexistStability.bib
+csl: components/ecology.csl
+
+## rmarkdown render options
+output:
+  pdf_document:
+    fig_caption: true
+    keep_tex: true
+fontsize: 12pt
+geometry: margin=1in
+---
+
+Species (a)synchrony in natural grasslands
+===========================================
+
+### Andrew T. Tredennick, Claire de Mazancourt, and Peter B. Adler
+
+```{r caching, include=FALSE}
+library("methods")
+library("knitr")
+library("png")
+library("grid")
+basename <- "manuscript"
+opts_chunk$set(fig.path = paste("components/figure/", basename, "-", sep=""),
+               cache.path = paste("components/cache/", basename, "/", sep=""))
+opts_chunk$set(cache = 2)
+opts_chunk$set(tidy=FALSE, warning=FALSE, message=FALSE, 
+               comment = NA, verbose = TRUE, echo=FALSE)
+
+# PDF-based figures
+opts_chunk$set(dev='pdf')
+```
+
+
+```{r plot-options, message=FALSE, warning=FALSE, include=FALSE, echo=FALSE}
+cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", 
+               "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+opts_chunk$set(dev='pdf', dev.args=c(version="1.3"))
+
+```
+
+Introduction
+------------
+Asynchronous population fluctuations are predicted to be a major force behind the stability of aggregate community and ecosystem properties. In cases where populations within a community vary more through time than the summed population dynamics across all species, asynchronous dynamics must play a stabilizing role. While stabilization of communities or ecosystems through time is an important consequence of species asynchrony, the causes behind species (a)synchrony in natural communities can be difficult to detect. This is because species synchrony is an outcome of three potentially related forces: (1) species-specific responses to environmental fluctuations, (2) demographic stochasticity, and (3) inter- and intraspecific competition (or density-dependence). Estimating the contribution of even one of these forces is difficult when using observed population time-series.
+
+There may be ways to isolate the effect of any given force if others can be ignored or set to zero in a simulation context. For example, if the population time series come from large populations that persist over along time periods, it may be safe to assume that demographic stochasticity plays a minimal role. Indeed, there is a rich literature on the diminishing effects of demographic stochasticity on population dynamics as the population becomes "large". If demographic stochasticity, the only factor that can intrinsically lead to independent species' fluctuations, can be ignored then identifying remaining drivers of species' synchrony becomes easier. Only two factors remain, and if the effect of one can be isolated, then we also have a qualititative and semi-quantitative estimate of the effect of the other factor.
+
+Here we use long term (22 years or longer) population time series of dominant species in two grassland ecosystems subject to environmental variability to show that species-specific responses to environmental conditions is the main driver of species asynchrony. First, we show that aggregate community plant cover is more stable than any species' cover through time, indicating a stabilizing role of species' asynchrony. Second, we use the synchrony measure defined by Loreau and de Mazancourt (2008) to estimate community-wide synchrony in percent cover and per capita growth rates. Third, we use Integral Projection Models to simulate each species' yearly environmental response. Fourth, we compare the environmental response of each species to its observed yearly growth rate to quantify the effect of species-specific responses to the environment on species synchrony. Lastly, we use the IPMs to conduct pair-wise simulation experiments to explore the role of competition in driving species synchrony. 
+
+Methods and Results
+-------------------
+1. Calculate temporal stability, $\sigma/\mu$, of each species' percent cover and total percent cover at each site. This is to show that stability is higher at the community-level, indicating at least some level of asynchronous dynamics.
+```{r figure_1, dependson="plot-options", fig.cap="Time series of dominant species' percent cover at the Kansas and Idaho study sites. Percent cover is averaged over multiple quadrats.", cache=FALSE, results='hide', fig.width=7, fig.height=5}
+img <- readPNG("../Analysis/idaho_kansas_timeseries.png")
+grid.raster(img)
+```
+
+
+2. Estimate community-wide synchrony using metric of Loreau and de Mazancourt (2008):
+$$
+\phi_{C} = \frac{\sigma_{C}^2}{(\sum\sigma_{i}^2)}
+$$
+We do this for species' percent cover, averaged over all the plots.
+
+
+
+
