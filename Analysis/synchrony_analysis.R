@@ -5,20 +5,21 @@
 #### Andrew Tredennick: atredenn@gmail.com
 #### 2-17-2015
 
+
 ## Clear the workspace
 rm(list=ls(all=TRUE))
 
 ####
 #### 0.1. Load libraries ----------------------------------------
 ####
-library(reshape2); library(ggplot2)
+library(reshape2); library(ggplot2); library(gridExtra)
 library(synchrony); library(plyr); library(tidyr)
 
 ####
 #### 0.2. Set color-blind pallete -------------------------------
 ####
 cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", 
-               "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+               "#CC79A7", "#0072B2", "#D55E00", "#CC79A7")
 
 ####
 #### 1. Observed community synchrony from time series (population cover) --------
@@ -64,9 +65,21 @@ ks_agg <- ddply(ks_data, .(year, species), summarise,
 ts_ks <- numeric(num_spp+1)
 for(i in 1:num_spp){
   tmp <- subset(ks_agg, species==spp_list[i])
-  ts_ks[i] <- sd(tmp$tot_cover)/mean(tmp$tot_cover)
+  ts_ks[i] <- mean(tmp$tot_cover)/sd(tmp$tot_cover)
 }
-ts_ks[num_spp+1] <- sd(ks_agg$tot_cover)/mean(ks_agg$tot_cover)
+ks_sum <- ddply(ks_agg, .(year), summarise,
+                all_cover = sum(tot_cover))
+ts_ks[num_spp+1] <- mean(ks_sum$all_cover)/sd(ks_sum$all_cover)
+# Quick plot of temporal stability
+ts_ks_df <- as.data.frame(ts_ks)
+ts_ks_df$species <- c(spp_list, "ACommunity")
+ggplot(ts_ks_df, aes(x=species, y=ts_ks, fill=species))+
+  geom_bar(stat="identity", width=0.75)+
+  scale_fill_manual(values = cbPalette[1:4])+
+  guides(fill=FALSE)+
+  scale_x_discrete(labels=c("Community", spp_list))+
+  ylab("Temporal Stability")+
+  xlab("")
 
 # now synchrony of the population fluctuations
 ks_mat <- dcast(ks_agg, formula = year~species)
@@ -77,20 +90,28 @@ ks_yrpgr <- readRDS("../PopModels/kansasIPM/simulations/RmaxYearly_ipm.rds")
 synch_ks_yr <- community.sync(ks_yrpgr)
 
 # caclulate observed growth rates
-transitions <- nrow(ks_mat)-1
+# create lagged data frame to only get observed yearly transitions
+lag_df <- ks_mat
+lag_df$lagyear <- lag_df$year+1
+colnames(lag_df)[2:4] <- paste(colnames(lag_df)[2:4],"_t0", sep="") 
+# merge the lag df with observed
+merged_df <- merge(ks_mat, lag_df, by.x = "year", by.y="lagyear")
+transitions <- nrow(merged_df)
 ks_obs_gr <- matrix(nrow=transitions, ncol=num_spp)
 for(i in 1:transitions){
-  ks_obs_gr[i,] <- as.numeric(log(ks_mat[i+1,2:4]/ks_mat[i,2:4]))
+  ks_obs_gr[i,] <- as.numeric(log(merged_df[i,2:4]/merged_df[i,6:8]))
 }
 
 ks_growthrates <- cbind(melt(ks_yrpgr[1:33,]), melt(ks_obs_gr)$value)
 colnames(ks_growthrates) <- c("year", "species", "simyrpgr", "obsyrgr")
 growth_plot_ks <- ggplot(ks_growthrates, aes(x=simyrpgr, y=obsyrgr, color=species))+
                     geom_point(size=3)+
+                    geom_point(size=3, color="black", shape=1)+
                     stat_smooth(method="lm", se=FALSE, size=1)+
                     scale_color_manual(values=cbPalette[1:num_spp], name="")+
                     xlab("Environmental response (simulated)")+
-                    ylab("Yearly growth rate (observed)")
+                    ylab("Yearly growth rate (observed)")+
+                    ggtitle("Kansas")
 
 # get R2 from linear models for percent of observed transition
 # explained by species response to environment
@@ -129,9 +150,21 @@ id_agg <- ddply(id_data, .(year, species), summarise,
 ts_id <- numeric(num_spp+1)
 for(i in 1:num_spp){
   tmp <- subset(id_agg, species==spp_list[i])
-  ts_id[i] <- sd(tmp$tot_cover)/mean(tmp$tot_cover)
+  ts_id[i] <- mean(tmp$tot_cover)/sd(tmp$tot_cover)
 }
-ts_id[num_spp+1] <- sd(id_agg$tot_cover)/mean(id_agg$tot_cover)
+id_sum <- ddply(id_agg, .(year), summarise,
+                all_cover = sum(tot_cover))
+ts_id[num_spp+1] <- mean(id_sum$all_cover)/sd(id_sum$all_cover)
+# Quick plot of temporal stability
+ts_id_df <- as.data.frame(ts_id)
+ts_id_df$species <- c(spp_list, "ACommunity")
+ggplot(ts_id_df, aes(x=species, y=ts_id, fill=species))+
+  geom_bar(stat="identity", width=0.75)+
+  scale_fill_manual(values = cbPalette[1:5])+
+  guides(fill=FALSE)+
+  scale_x_discrete(labels=c("Community", spp_list))+
+  ylab("Temporal Stability")+
+  xlab("")
 
 # now synchrony of the population fluctuations
 id_mat <- dcast(id_agg, formula = year~species)
@@ -141,26 +174,83 @@ synch_id <- community.sync(id_mat[2:4])
 id_yrpgr <- readRDS("../PopModels/idahoIPM/simulations/RmaxYearly_ipm.rds")
 synch_id_yr <- community.sync(id_yrpgr)
 
+####
+#### PLOT BOTH SITE SYNCHRONIES
+####
+synch_both <- data.frame(synch = c(synch_ks[1]$obs, synch_ks_yr[1]$obs,
+                                   synch_id[1]$obs, synch_id_yr[1]$obs),
+                         type = rep(c("obs", "simyr"),2),
+                         site = c("Kansas", "Kansas", "Idaho", "Idaho"))
+dodge <- position_dodge(width=0.9)
+ggplot(synch_both, aes(x=site, y=synch, fill=type))+
+  geom_bar(stat="identity", position=dodge)+
+  scale_fill_manual(values=c("grey35", "#E69F00"), name="", labels=c("Observed", "Environmental Response"))+
+  xlab("Site")+
+  ylab("Synchrony")
+
+
 # caclulate observed growth rates
-transitions <- nrow(id_mat)-1
+# create lagged data frame to only get observed yearly transitions
+lag_df <- id_mat
+lag_df$lagyear <- lag_df$year+1
+colnames(lag_df)[2:5] <- paste(colnames(lag_df)[2:5],"_t0", sep="") 
+# merge the lag df with observed (this gives desired 22 year time series)
+merged_df <- merge(id_mat, lag_df, by.x = "year", by.y="lagyear")
+transitions <- nrow(merged_df)
 id_obs_gr <- matrix(nrow=transitions, ncol=num_spp)
 for(i in 1:transitions){
-  id_obs_gr[i,] <- as.numeric(log(id_mat[i,2:5]/id_mat[i+1,2:5]))
+  id_obs_gr[i,] <- as.numeric(log(merged_df[i,2:5]/merged_df[i,7:10]))
 }
 
 id_growthrates <- cbind(melt(id_yrpgr[1:nrow(id_obs_gr),]), melt(id_obs_gr)$value)
 colnames(id_growthrates) <- c("year", "species", "simyrpgr", "obsyrgr")
-ggplot(id_growthrates, aes(x=simyrpgr, y=obsyrgr, color=species))+
-  geom_point()+
-  stat_smooth(method="lm", se=FALSE)+
-  scale_color_manual(values=cbPalette[1:num_spp])
+growth_plot_id <- ggplot(id_growthrates, aes(x=simyrpgr, y=obsyrgr, color=species))+
+  geom_point(size=3)+
+  geom_point(size=3, color="black", shape=1)+
+  stat_smooth(method="lm", se=FALSE, size=1)+
+  scale_color_manual(values=cbPalette[4:(num_spp+4)], name="")+
+  xlab("Environmental response (simulated)")+
+  ylab("Yearly growth rate (observed)")+
+  ggtitle("Idaho")
+
+r_squares <- numeric(num_spp)
+for(i in 1:num_spp){
+  r_squares[i] <- summary(lm(obsyrgr~simyrpgr, 
+                             data=subset(id_growthrates, species==spp_list[i]))
+  )$r.squared
+}
+explained_var_id <- data.frame("species" = spp_list,
+                               "var_exp" = r_squares*100)
+
+####
+#### 2. Some plots -------------------------------
+####
+pdf("envresponse_growthrate.pdf", width = 5, height = 7)
+g_growthrates <- grid.arrange(growth_plot_ks, growth_plot_id, nrow=2, ncol=1)
+g_growthrates
+dev.off()
+
 
 #Kansas time series
-ggplot()+
+g_cov1 <- ggplot()+
   geom_line(data=ks_agg, aes(x=year, y=tot_cover, color=species))+
   geom_point(data=ks_agg, aes(x=year, y=tot_cover, color=species), size=3)+
-  scale_color_manual(values=cbPalette[1:num_spp])
-
+  scale_color_manual(values=cbPalette[1:num_spp], name="")+
+  xlab("Year (19xx)")+
+  ylab("Average Cover (%)")+
+  ggtitle("Kansas")
+#Idaho time series
+g_cov2 <- ggplot()+
+  geom_line(data=id_agg, aes(x=year, y=tot_cover, color=species))+
+  geom_point(data=id_agg, aes(x=year, y=tot_cover, color=species), size=3)+
+  scale_color_manual(values=cbPalette[4:(num_spp+4)], name="")+
+  xlab("Year (19xx)")+
+  ylab("Average Cover (%)")+
+  ggtitle("Idaho")
+png("idaho_kansas_timeseries.png", width = 7, height = 5, units = "in", res=300)
+g_timeseries <- grid.arrange(g_cov1,g_cov2, nrow=2, ncol=1)
+g_timeseries
+dev.off()
 
 # 
 # #Get quadrat group information
