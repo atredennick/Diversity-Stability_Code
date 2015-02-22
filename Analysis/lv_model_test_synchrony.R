@@ -20,6 +20,7 @@ library(mvtnorm)
 library(ggplot2)
 library(synchrony)
 library(msm)
+library(reshape2)
 
 
 ####
@@ -87,7 +88,8 @@ N2.start <- K2
 # beta12 = 1 #competition coefficient; effect of spp2 on spp1
 # beta21 = 1 #competition coefficient; effect of spp1 on spp2
 # Assume symmetrical community
-beta12 = beta21 = seq(0,0.9,0.05)
+beta12 =  seq(0,0.9,0.05)
+beta21 = 0
 rho = seq(-0.9, 0.9, 0.1)
 run_time = 1500
 burn = run_time/2
@@ -116,7 +118,7 @@ for(comp in 1:length(beta12)){
                           N1.start, N2.start, 
                           K1, K2,
                           evar1, evar2, 
-                          beta12[comp], beta21[comp], 
+                          beta12[comp], beta21, 
                           run_time, whitevar)
       
       model_null <- as.data.frame(model_null)
@@ -184,6 +186,7 @@ ggplot(comm_df, aes(x=beta, y=difference, color=rho, group=rho))+
 #   geom_point(size=3)+
   xlab(expression(paste("Competition coefficient (", beta[ij], ")")))+
   ylab("Community synchrony - Environmental synchrony")+
+  geom_hline(aes(yintercept=0), linetype=2, color="grey25")+
   scale_color_gradient(limits=c(-1, 1), low="red")+
   theme_bw()
 
