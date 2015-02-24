@@ -21,6 +21,7 @@ library(ggplot2)
 library(synchrony)
 library(msm)
 library(reshape2)
+library(gridExtra)
 
 
 ####
@@ -88,107 +89,127 @@ N2.start <- K2
 # beta12 = 1 #competition coefficient; effect of spp2 on spp1
 # beta21 = 1 #competition coefficient; effect of spp1 on spp2
 # Assume symmetrical community
-beta12 =  seq(0,0.9,0.05)
-beta21 = 0
+beta12 =  seq(-0.5,0.5,0.1)
+beta21 = c(0.5, 0.1, -0.1, -0.5)
 rho = seq(-0.9, 0.9, 0.1)
 run_time = 1500
 burn = run_time/2
-n_sims=20
+n_sims = 2
 
-# Set up storage matrices and lists
-out_comm <- matrix(NA, ncol=length(beta12), nrow=length(rho))
-out_resp <- matrix(NA, ncol=length(beta12), nrow=length(rho))
-tmp_comm <- numeric(n_sims)
-tmp_resp <- numeric(n_sims)
-slopes <- matrix(NA, nrow=n_sims, ncol=2)
-rsquares <- matrix(NA, nrow=n_sims, ncol=2)
-out_slopes <- array(dim = c(length(rho),length(beta12),2))
-out_squares <- array(dim = c(length(rho),length(beta12),2))
+gs <- list()
 
+for(b1 in 1:length(beta21)){
+  # Set up storage matrices and lists
+  out_comm <- matrix(NA, ncol=length(beta12), nrow=length(rho))
+  out_resp <- matrix(NA, ncol=length(beta12), nrow=length(rho))
+  tmp_comm <- numeric(n_sims)
+  tmp_resp <- numeric(n_sims)
+  slopes <- matrix(NA, nrow=n_sims, ncol=2)
+  rsquares <- matrix(NA, nrow=n_sims, ncol=2)
+  out_slopes <- array(dim = c(length(rho),length(beta12),2))
+  out_squares <- array(dim = c(length(rho),length(beta12),2))
+  
+  
+  # Run model at different levels of competition and correlation in env response
+  pb <- txtProgressBar(min=2, max=length(beta12), char="+", style=3, width=65)
+  for(comp in 1:length(beta12)){
+    for(corr in 1:length(rho)){
+      for(sim in 1:n_sims){
+        # get environment time series
+        whitevar <- get_env(sigE = 1, rho = rho[corr], nTime = run_time)
+        
+        model_null <- model(rm1, rm2, 
+                            N1.start, N2.start, 
+                            K1, K2,
+                            evar1, evar2, 
+                            beta12[comp], beta21[b1], 
+                            run_time, whitevar)
+        
+        model_null <- as.data.frame(model_null)
+        tmp_comm[sim] <- as.numeric(community.sync(model_null[burn:run_time,1:2])[1])
+        tmp_resp[sim] <- as.numeric(community.sync(whitevar[burn:run_time,1:2])[1])
+#         mod1 <- lm(model_null[burn:run_time,4]~whitevar[burn:run_time,1])
+#         mod2 <- lm(model_null[burn:run_time,5]~whitevar[burn:run_time,2])
+#         slopes[sim,] <- c(coef(mod1)[2], coef(mod2)[2])
+#         rsquares[sim,] <- c(summary(mod1)$r.squared, summary(mod2)$r.squared)
+      }#end simulation loop
+      out_comm[corr, comp] <- mean(tmp_comm, na.rm = TRUE)
+      out_resp[corr, comp] <- mean(tmp_resp, na.rm = TRUE)
+#       out_slopes[corr, comp, 1] <- mean(slopes[,1])
+#       out_slopes[corr, comp, 2] <- mean(slopes[,2])
+#       out_squares[corr, comp, 1] <- mean(rsquares[,1])
+#       out_squares[corr, comp, 2] <- mean(rsquares[,2])
+    }#end correlation loop
+    setTxtProgressBar(pb, comp)
+  }#end competition loop
+  print(paste("Done with", b1))
+  
+  colnames(out_comm) <- beta12
+  rownames(out_comm) <- rho
+  comm_df <- melt(out_comm)
+  colnames(comm_df) <- c("rho", "beta", "community")
+  colnames(out_resp) <- beta12
+  rownames(out_resp) <- rho
+  resp_df <- melt(out_resp)
+  comm_df$response <- resp_df$value
+  comm_df$difference <- with(comm_df, community-response)
+  
+  slopes_df <- out_slopes[,,1]
+  colnames(slopes_df) <- beta12
+  rownames(slopes_df) <- rho
+  slopes_m <- melt(slopes_df)
+  colnames(slopes_m) <-  c("rho", "beta", "slope")
+  slopes_m$species <- rep(1,nrow(slopes_m))
+  tmp <- out_slopes[,,2]
+  colnames(tmp) <- beta12
+  rownames(tmp) <- rho
+  tmp_m <- melt(tmp)
+  colnames(tmp_m) <-  c("rho", "beta", "slope")
+  tmp_m$species <- rep(2,nrow(tmp_m))
+  slopes_m <- rbind(slopes_m, tmp_m)
+  
+  squares_df <- out_squares[,,1]
+  colnames(squares_df) <- beta12
+  rownames(squares_df) <- rho
+  squares_m <- melt(squares_df)
+  colnames(squares_m) <-  c("rho", "beta", "rsquare")
+  squares_m$species <- rep(1,nrow(squares_m))
+  tmp <- out_squares[,,2]
+  colnames(tmp) <- beta12
+  rownames(tmp) <- rho
+  tmp_m <- melt(tmp)
+  colnames(tmp_m) <-  c("rho", "beta", "rsquare")
+  tmp_m$species <- rep(2,nrow(tmp_m))
+  squares_m <- rbind(squares_m, tmp_m)
+  
+  ####
+  #### 4. Make some plots -------------------------------
+  ####
+#   ggplot(comm_df, aes(x=beta, y=difference, color=rho, group=rho))+
+#     geom_line(size=1.5, alpha=0.75)+
+#     #   geom_point(size=5, color="white")+
+#     #   geom_point(size=3)+
+#     xlab(expression(paste("Competition coefficient (", beta[ij], ")")))+
+#     ylab("Community synchrony - Environmental synchrony")+
+#     geom_hline(aes(yintercept=0), linetype=2, color="grey25")+
+#     scale_color_gradient(limits=c(-1, 1), low="purple", high="gold")+
+#     theme_bw()
+  
+  #Get minimum by beta
+  min_df <- ddply(comm_df, .(beta), summarise,
+                  min_y = min(difference))
+  comm_df2 <- merge(comm_df, min_df, by="beta")
+  gs[[b1]] <- ggplot(comm_df2, aes(x=beta, ymax=difference, ymin=min_y, fill=rho, group=rho))+
+    geom_ribbon(alpha=0.75)+
+    xlab(expression(paste("Competition coefficient (", beta[ij], ")")))+
+    ylab("Community synchrony - Environmental synchrony")+
+    geom_hline(aes(yintercept=0), linetype=2, color="grey25")+
+    scale_fill_gradient(limits=c(-1, 1), low="darkslateblue", high="goldenrod1")+
+    theme_bw()+
+    ggtitle(bquote(beta[ji] ~ "=" ~ .(beta21[b1])))
+}# end b1 loop
 
-# Run model at different levels of competition and correlation in env response
-pb <- txtProgressBar(min=2, max=length(beta12), char="+", style=3, width=65)
-for(comp in 1:length(beta12)){
-  for(corr in 1:length(rho)){
-    for(sim in 1:n_sims){
-      # get environment time series
-      whitevar <- get_env(sigE = 1, rho = rho[corr], nTime = run_time)
-      
-      model_null <- model(rm1, rm2, 
-                          N1.start, N2.start, 
-                          K1, K2,
-                          evar1, evar2, 
-                          beta12[comp], beta21, 
-                          run_time, whitevar)
-      
-      model_null <- as.data.frame(model_null)
-      tmp_comm[sim] <- as.numeric(community.sync(model_null[burn:run_time,1:2])[1])
-      tmp_resp[sim] <- as.numeric(community.sync(whitevar[burn:run_time,1:2])[1])
-      mod1 <- lm(model_null[burn:run_time,4]~whitevar[burn:run_time,1])
-      mod2 <- lm(model_null[burn:run_time,5]~whitevar[burn:run_time,2])
-      slopes[sim,] <- c(coef(mod1)[2], coef(mod2)[2])
-      rsquares[sim,] <- c(summary(mod1)$r.squared, summary(mod2)$r.squared)
-    }#end simulation loop
-    out_comm[corr, comp] <- mean(tmp_comm)
-    out_resp[corr, comp] <- mean(tmp_resp)
-    out_slopes[corr, comp, 1] <- mean(slopes[,1])
-    out_slopes[corr, comp, 2] <- mean(slopes[,2])
-    out_squares[corr, comp, 1] <- mean(rsquares[,1])
-    out_squares[corr, comp, 2] <- mean(rsquares[,2])
-  }#end correlation loop
-  setTxtProgressBar(pb, comp)
-}#end competition loop
-
-colnames(out_comm) <- beta12
-rownames(out_comm) <- rho
-comm_df <- melt(out_comm)
-colnames(comm_df) <- c("rho", "beta", "community")
-colnames(out_resp) <- beta12
-rownames(out_resp) <- rho
-resp_df <- melt(out_resp)
-comm_df$response <- resp_df$value
-comm_df$difference <- with(comm_df, community-response)
-
-slopes_df <- out_slopes[,,1]
-colnames(slopes_df) <- beta12
-rownames(slopes_df) <- rho
-slopes_m <- melt(slopes_df)
-colnames(slopes_m) <-  c("rho", "beta", "slope")
-slopes_m$species <- rep(1,nrow(slopes_m))
-tmp <- out_slopes[,,2]
-colnames(tmp) <- beta12
-rownames(tmp) <- rho
-tmp_m <- melt(tmp)
-colnames(tmp_m) <-  c("rho", "beta", "slope")
-tmp_m$species <- rep(2,nrow(tmp_m))
-slopes_m <- rbind(slopes_m, tmp_m)
-
-squares_df <- out_squares[,,1]
-colnames(squares_df) <- beta12
-rownames(squares_df) <- rho
-squares_m <- melt(squares_df)
-colnames(squares_m) <-  c("rho", "beta", "rsquare")
-squares_m$species <- rep(1,nrow(squares_m))
-tmp <- out_squares[,,2]
-colnames(tmp) <- beta12
-rownames(tmp) <- rho
-tmp_m <- melt(tmp)
-colnames(tmp_m) <-  c("rho", "beta", "rsquare")
-tmp_m$species <- rep(2,nrow(tmp_m))
-squares_m <- rbind(squares_m, tmp_m)
-
-####
-#### 4. Make some plots -------------------------------
-####
-ggplot(comm_df, aes(x=beta, y=difference, color=rho, group=rho))+
-  geom_line(size=1.5, alpha=0.75)+
-#   geom_point(size=5, color="white")+
-#   geom_point(size=3)+
-  xlab(expression(paste("Competition coefficient (", beta[ij], ")")))+
-  ylab("Community synchrony - Environmental synchrony")+
-  geom_hline(aes(yintercept=0), linetype=2, color="grey25")+
-  scale_color_gradient(limits=c(-1, 1), low="red")+
-  theme_bw()
+g_final <- grid.arrange(gs[[1]], gs[[2]], gs[[3]], gs[[4]], nrow=2, ncol=2)
 
 # ggplot(slopes_m, aes(x=beta, y=slope, color=rho, group=rho))+
 #   geom_line()+

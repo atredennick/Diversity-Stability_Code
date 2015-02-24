@@ -21,6 +21,26 @@ library(synchrony); library(plyr); library(tidyr)
 cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", 
                "#CC79A7", "#0072B2", "#D55E00", "#CC79A7")
 
+####
+#### 0.3. Define eta synchrony function -------------------------------
+####
+# This is a new synchrony measure from Gross et al. 2014 (Am. Nat.)
+# The function takes a community matrix where columns are species and rows are years (or other time unit)
+get_eta <- function(y_matrix){
+  n <- ncol(y_matrix)
+  tmp_corr <- numeric(n)
+  for(i in 1:n){
+    y_focal <- y_matrix[,i]
+    y_other <- y_matrix[,-i]
+    tmp_corr[i] <- cor(y_focal, rowSums(y_other))
+  }
+  eta_out <- (1/n)*sum(tmp_corr)
+  return(eta_out)
+}
+
+####
+#### 0.4. Make a fake plot for presentation ----------------------------------------
+####
 # Make fake plot for signature of asynchrony contribution to stability
 df_fake <- data.frame(stability=c(5,5,5,2.5,1.1,0.5),
                       level=c(rep("Community",3), rep("Population",3)),
@@ -38,9 +58,11 @@ ggplot(df_fake, aes(x=level, y=stability))+
 ####
 # Average over quadrats first, ignoring certain one's for Kansas
 # due to over-dominance by BOCU. These excluded quadrats are taken from
-# Chnegjin's code. Results in 7 quadrats for the data.
+# Chnegjin's code. Results in 7 quadrats for the data (see Chu & Adler, 2015 Ecol Mono).
 
-## Kansas
+####
+#### 1.1 Kansas ------------------------------------------------------------------
+####
 # bring in data
 site <- "Kansas"
 spp_list <- c("BOCU","BOHI","SCSC")
@@ -64,7 +86,8 @@ tmp5<-which(ks_data$quad=="q31" & (ks_data$year<35 | ks_data$year>39))
 tmp6<-which(ks_data$quad=="q32" & (ks_data$year<35 | ks_data$year>41))
 tmp<-c(tmp1,tmp2,tmp3,tmp4,tmp5,tmp6)
 ks_data<-ks_data[-tmp,]
-##excluding the records later than 1968, to keep the same random year effect...
+
+# exclude the records later than 1968, to keep the same random year effect...
 ks_data<-subset(ks_data,year<68)
 
 # aggregate the quadrat-level data for average observed cover
@@ -73,18 +96,22 @@ ks_agg <- ddply(ks_data, .(year, species), summarise,
                 tot_cover = mean(totCover/100))
 
 # caclulate synchrony and stability
-# first stability (sd/mean) by population and then community
+# first stability (mean/sd; Tilman et al. citation) by population and then community
 ts_ks <- numeric(num_spp+1)
-for(i in 1:num_spp){
+for(i in 1:num_spp){ #loop through species for population stability
   tmp <- subset(ks_agg, species==spp_list[i])
   ts_ks[i] <- mean(tmp$tot_cover)/sd(tmp$tot_cover)
-}
+} #end species looping for stability
+
+# Calculate total cover from the species-level data for each quadrat
 ks_sum <- ddply(ks_agg, .(year), summarise,
                 all_cover = sum(tot_cover))
 ts_ks[num_spp+1] <- mean(ks_sum$all_cover)/sd(ks_sum$all_cover)
+
 # Quick plot of temporal stability
 ts_ks_df <- as.data.frame(ts_ks)
 ts_ks_df$species <- c(spp_list, "ACommunity")
+# Bar plot version
 ggplot(ts_ks_df, aes(x=species, y=ts_ks, fill=species))+
   geom_bar(stat="identity", width=0.75)+
   scale_fill_manual(values = cbPalette[1:4])+
@@ -92,6 +119,8 @@ ggplot(ts_ks_df, aes(x=species, y=ts_ks, fill=species))+
   scale_x_discrete(labels=c("Community", spp_list))+
   ylab("Temporal Stability")+
   xlab("")
+
+# Line and point plot version
 df2 <- data.frame(species=ts_ks_df$species[1:3], 
                   stab=c(ts_ks_df$ts_ks[1:3],rep(ts_ks_df$ts_ks[4],3)), 
                   type=c(rep("species", 3), rep("community", 3)))
@@ -106,11 +135,13 @@ ggplot(df2, aes(x=type, y=stab))+
 
 # now synchrony of the population fluctuations
 ks_mat <- dcast(ks_agg, formula = year~species)
-synch_ks <- community.sync(ks_mat[2:4])
+synch_ks <- community.sync(ks_mat[2:4]) #Loreau and de Mazancourt 2008 (Am Nat)
+synch_ks_eta <- get_eta(ks_mat[2:4]) #Gross et al. 2014 (Am Nat)
 
 # now synchrony of yearly intrinsic growth rates
 ks_yrpgr <- readRDS("../PopModels/kansasIPM/simulations/RmaxYearly_ipm.rds")
-synch_ks_yr <- community.sync(ks_yrpgr)
+synch_ks_yr <- community.sync(ks_yrpgr) #Loreau and de Mazancourt 2008 (Am Nat)
+synch_ks_yr_eta <- get_eta(ks_yrpgr) #Gross et al. 2014 (Am Nat)
 
 # caclulate observed growth rates
 # create lagged data frame to only get observed yearly transitions
@@ -138,17 +169,21 @@ growth_plot_ks <- ggplot(ks_growthrates, aes(x=simyrpgr, y=obsyrgr, color=specie
 
 # get R2 from linear models for percent of observed transition
 # explained by species response to environment
-r_squares <- numeric(num_spp)
-for(i in 1:num_spp){
-  r_squares[i] <- summary(lm(obsyrgr~simyrpgr, 
-                             data=subset(ks_growthrates, species==spp_list[i]))
-                          )$r.squared
-}
-explained_var_ks <- data.frame("species" = spp_list,
-                            "var_exp" = r_squares*100)
+# This doesn't tell us too much about synchrony though...
+# Commenting out for now; ATT 2-24-2015
+# r_squares <- numeric(num_spp)
+# for(i in 1:num_spp){
+#   r_squares[i] <- summary(lm(obsyrgr~simyrpgr, 
+#                              data=subset(ks_growthrates, species==spp_list[i]))
+#                           )$r.squared
+# }
+# explained_var_ks <- data.frame("species" = spp_list,
+#                                "var_exp" = r_squares*100)
 
 
-## Idaho
+####
+#### 1.2 Idaho ----------------------------------------------------------------------
+####
 # bring in data
 site <- "Idaho"
 spp_list <- sort(c("PSSP","HECO","POSE","ARTR"))
@@ -201,7 +236,8 @@ ggplot(df2, aes(x=type, y=stab))+
 
 # now synchrony of the population fluctuations
 id_mat <- dcast(id_agg, formula = year~species)
-synch_id <- community.sync(id_mat[2:4])
+synch_id <- community.sync(id_mat[2:5])
+synch_id_eta <- get_eta(id_mat[2:5])
 
 # now synchrony of yearly intrinsic growth rates
 id_yrpgr <- readRDS("../PopModels/idahoIPM/simulations/RmaxYearly_ipm.rds")
