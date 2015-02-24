@@ -21,6 +21,18 @@ library(synchrony); library(plyr); library(tidyr)
 cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", 
                "#CC79A7", "#0072B2", "#D55E00", "#CC79A7")
 
+# Make fake plot for signature of asynchrony contribution to stability
+df_fake <- data.frame(stability=c(5,5,5,2.5,1.1,0.5),
+                      level=c(rep("Community",3), rep("Population",3)),
+                      species=rep(c("A","B","C"),2))
+ggplot(df_fake, aes(x=level, y=stability))+
+  geom_line(aes(group=species), linetype=2, color="grey35")+
+  geom_point(aes(shape=species, color=species), size=5)+
+  scale_color_manual(values = cbPalette[1:3])+
+#   scale_x_discrete(labels=c("Community", "Population"))+
+  ylab("Temporal Stability")+
+  xlab("")
+
 ####
 #### 1. Observed community synchrony from time series (population cover) --------
 ####
@@ -80,6 +92,17 @@ ggplot(ts_ks_df, aes(x=species, y=ts_ks, fill=species))+
   scale_x_discrete(labels=c("Community", spp_list))+
   ylab("Temporal Stability")+
   xlab("")
+df2 <- data.frame(species=ts_ks_df$species[1:3], 
+                  stab=c(ts_ks_df$ts_ks[1:3],rep(ts_ks_df$ts_ks[4],3)), 
+                  type=c(rep("species", 3), rep("community", 3)))
+ggplot(df2, aes(x=type, y=stab))+
+  geom_line(aes(group=species), linetype=2, color="grey35")+
+  geom_point(aes(shape=species, color=species), size=5)+
+  scale_color_manual(values = cbPalette[1:3])+
+  scale_x_discrete(labels=c("Community", "Population"))+
+  ylab("Temporal Stability")+
+  xlab("")
+
 
 # now synchrony of the population fluctuations
 ks_mat <- dcast(ks_agg, formula = year~species)
@@ -163,6 +186,16 @@ ggplot(ts_id_df, aes(x=species, y=ts_id, fill=species))+
   scale_fill_manual(values = cbPalette[1:5])+
   guides(fill=FALSE)+
   scale_x_discrete(labels=c("Community", spp_list))+
+  ylab("Temporal Stability")+
+  xlab("")
+df2 <- data.frame(species=ts_id_df$species[1:4], 
+                  stab=c(ts_id_df$ts_id[1:4],rep(ts_id_df$ts_id[5],4)), 
+                  type=c(rep("species", 4), rep("community", 4)))
+ggplot(df2, aes(x=type, y=stab))+
+  geom_line(aes(group=species), linetype=2, color="grey35")+
+  geom_point(aes(shape=species, color=species), size=5)+
+  scale_color_manual(values = cbPalette[5:8])+
+  scale_x_discrete(labels=c("Community", "Population"))+
   ylab("Temporal Stability")+
   xlab("")
 
