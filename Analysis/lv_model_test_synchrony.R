@@ -94,7 +94,7 @@ beta21 = c(0.5, 0.1, -0.1, -0.5)
 rho = seq(-0.9, 0.9, 0.1)
 run_time = 1500
 burn = run_time/2
-n_sims = 2
+n_sims = 30
 
 gs <- list()
 

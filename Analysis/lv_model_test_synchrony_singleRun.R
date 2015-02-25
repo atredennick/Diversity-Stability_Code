@@ -40,7 +40,7 @@ model <- function(rm1, rm2,
                   K1, K2,
                   evar1, evar2, 
                   beta12, beta21, 
-                  run_time, whitevar){
+                  run_time, whitevar, harv){
   r1 = numeric(run_time)
   r2 = numeric(run_time)
   N1 = numeric(run_time)
@@ -56,8 +56,8 @@ model <- function(rm1, rm2,
     sum.non2 = (beta21 * N1[t-1])/K1
     r1[t] = rm1 * (1-(N1[t-1]/K1) - sum.non1) + evar1 * whitevar[t,1]
     r2[t] = rm2 * (1-(N2[t-1]/K2) - sum.non2) + evar2 * whitevar[t,2] 
-    N1[t] = N1[t-1] + N1[t-1]*r1[t]
-    N2[t] = N2[t-1] + N2[t-1]*r2[t]
+    N1[t] = N1[t-1] + N1[t-1]*r1[t] 
+    N2[t] = N2[t-1] + N2[t-1]*r2[t] - N2[t-1]*harv[t]
     Ntot[t] = N1[t] + N2[t]
   }
   
@@ -87,9 +87,9 @@ N1.start <- K1
 N2.start <- K2
 # beta12 = 1 #competition coefficient; effect of spp2 on spp1
 # beta21 = 1 #competition coefficient; effect of spp1 on spp2
-beta12 =  0
+beta12 =  0.5
 beta21 = 0
-rho = 0
+rho = 0.5
 run_time = 1500
 burn = run_time/2
 
@@ -100,7 +100,8 @@ model_null <- model(rm1, rm2,
                     K1, K2,
                     evar1, evar2, 
                     beta12, beta21, 
-                    run_time, whitevar)
+                    run_time, whitevar,
+                    harv=c(rep(0,(run_time-25)), rep(0.35,25)))
 
 par(mfrow=c(2,1))
 matplot(model_null[(run_time-50):run_time,1:2],type="l", lty=1, col=c("goldenrod2","darkslateblue"),
@@ -111,8 +112,8 @@ matplot(model_null[(run_time-50):run_time,4:5],type="l", lty=1, col=c("goldenrod
 matplot(model_null[(run_time-50):run_time,4:5],pch=19, add=TRUE, col=c("goldenrod2","darkslateblue"))
 
 
-print(paste("ABUNDANCE:",as.numeric(community.sync(model_null[burn:run_time,1:2])[1])))
-print(paste("PGR:",as.numeric(community.sync(model_null[burn:run_time,4:5])[1])))
+# print(paste("ABUNDANCE:",as.numeric(community.sync(model_null[burn:run_time,1:2])[1])))
+print(paste("COMM PGR:",as.numeric(community.sync(model_null[burn:run_time,4:5])[1])))
 print(paste("ENV RESP:",as.numeric(community.sync(whitevar[burn:run_time,1:2])[1])))
 
 

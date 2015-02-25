@@ -143,6 +143,10 @@ ks_yrpgr <- readRDS("../PopModels/kansasIPM/simulations/RmaxYearly_ipm.rds")
 synch_ks_yr <- community.sync(ks_yrpgr) #Loreau and de Mazancourt 2008 (Am Nat)
 synch_ks_yr_eta <- get_eta(ks_yrpgr) #Gross et al. 2014 (Am Nat)
 
+# Plot yearly growth rates
+# matplot(c(1:nrow(ks_yrpgr)), ks_yrpgr, type="l")
+# matplot(c(1:nrow(ks_yrpgr)), ks_yrpgr, pch=19, add=TRUE)
+
 # caclulate observed growth rates
 # create lagged data frame to only get observed yearly transitions
 lag_df <- ks_mat
@@ -155,6 +159,9 @@ ks_obs_gr <- matrix(nrow=transitions, ncol=num_spp)
 for(i in 1:transitions){
   ks_obs_gr[i,] <- as.numeric(log(merged_df[i,2:4]/merged_df[i,6:8]))
 }
+
+matplot(c(1:nrow(ks_obs_gr)), ks_obs_gr, type="l")
+matplot(c(1:nrow(ks_obs_gr)), ks_obs_gr, pch=19, add=TRUE)
 
 ks_growthrates <- cbind(melt(ks_yrpgr[1:33,]), melt(ks_obs_gr)$value)
 colnames(ks_growthrates) <- c("year", "species", "simyrpgr", "obsyrgr")
@@ -242,20 +249,13 @@ synch_id_eta <- get_eta(id_mat[2:5])
 # now synchrony of yearly intrinsic growth rates
 id_yrpgr <- readRDS("../PopModels/idahoIPM/simulations/RmaxYearly_ipm.rds")
 synch_id_yr <- community.sync(id_yrpgr)
+get_eta(id_yrpgr)
 
-####
-#### PLOT BOTH SITE SYNCHRONIES
-####
-synch_both <- data.frame(synch = c(synch_ks[1]$obs, synch_ks_yr[1]$obs,
-                                   synch_id[1]$obs, synch_id_yr[1]$obs),
-                         type = rep(c("obs", "simyr"),2),
-                         site = c("Kansas", "Kansas", "Idaho", "Idaho"))
-dodge <- position_dodge(width=0.9)
-ggplot(synch_both, aes(x=site, y=synch, fill=type))+
-  geom_bar(stat="identity", position=dodge)+
-  scale_fill_manual(values=c("grey35", "#E69F00"), name="", labels=c("Observed", "Environmental Response"))+
-  xlab("Site")+
-  ylab("Synchrony")
+# Plot yearly growth rates
+matplot(c(1:nrow(id_yrpgr)), id_yrpgr, type="l")
+matplot(c(1:nrow(id_yrpgr)), id_yrpgr, pch=19, add=TRUE)
+
+
 
 
 # caclulate observed growth rates
@@ -270,6 +270,10 @@ id_obs_gr <- matrix(nrow=transitions, ncol=num_spp)
 for(i in 1:transitions){
   id_obs_gr[i,] <- as.numeric(log(merged_df[i,2:5]/merged_df[i,7:10]))
 }
+
+
+matplot(c(1:nrow(id_obs_gr)), id_obs_gr, type="l")
+matplot(c(1:nrow(id_obs_gr)), id_obs_gr, pch=19, add=TRUE)
 
 id_growthrates <- cbind(melt(id_yrpgr[1:nrow(id_obs_gr),]), melt(id_obs_gr)$value)
 colnames(id_growthrates) <- c("year", "species", "simyrpgr", "obsyrgr")
@@ -290,6 +294,24 @@ for(i in 1:num_spp){
 }
 explained_var_id <- data.frame("species" = spp_list,
                                "var_exp" = r_squares*100)
+
+####
+#### PLOT BOTH SITE SYNCHRONIES
+####
+synch_id_obs <- community.sync(id_obs_gr)
+synch_ks_obs <- community.sync(ks_obs_gr)
+synch_id_obs_e <- get_eta(id_obs_gr)
+synch_ks_obs_e <- get_eta(ks_obs_gr)
+synch_both <- data.frame(synch = c(synch_ks_obs[1]$obs, synch_ks_yr[1]$obs,
+                                   synch_id_obs[1]$obs, synch_id_yr[1]$obs),
+                         type = rep(c("obs", "simyr"),2),
+                         site = c("Kansas", "Kansas", "Idaho", "Idaho"))
+dodge <- position_dodge(width=0.9)
+ggplot(synch_both, aes(x=site, y=synch, fill=type))+
+  geom_bar(stat="identity", position=dodge)+
+  scale_fill_manual(values=c("grey35", "#E69F00"), name="", labels=c("Observed", "Environmental Response"))+
+  xlab("Site")+
+  ylab("Synchrony")
 
 ####
 #### 2. Some plots -------------------------------
