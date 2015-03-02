@@ -1,0 +1,25 @@
+---
+title: "Synchrony notes"
+author: "Andrew Tredennick"
+date: "March 2, 2015"
+output: html_document
+---
+
+From Loreau and de Mazancourt (2008, American Naturalist: [link](http://www.cbtm-moulis.com/fichiers_site/a2992ctm/contenu_pages/loreau_de_mazancourt_am_nat_2008.pdf)), here is the "expected synchrony of per capita population growth rate" under neutral community dynamics:
+
+$$
+\phi_r = \frac{\sigma_{c}^2 + \sigma_{e}^2 + \sigma_{d}^2/(S\tilde{N})}
+              {[(1/S)(\sum_{i} \sqrt{\sigma_{c}^2 + \sigma_{e}^2 + \sigma_{d}^2/\tilde{N}})]^2}
+$$
+
+Here are parameter definitions:
+
+| Parameter | Definition |
+| --------- | ---------- |
+| $\phi_{r}$ | expected synchrony in per capita growth rates |
+| $\sigma_{c}$ | community response variance (see definition below) |
+| $\sigma_{e}$ | environmental variance (equal among species) |
+| $\sigma_{d}$ | demographic variance (equal among species) |
+| $S$ | species richness in community |
+| $\tilde{N}$ | harmonic temporal mean of population or community size |
+
