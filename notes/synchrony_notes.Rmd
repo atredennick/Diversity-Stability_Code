@@ -17,9 +17,13 @@ Here are parameter definitions:
 | Parameter | Definition |
 | --------- | ---------- |
 | $\phi_{r}$ | expected synchrony in per capita growth rates |
-| $\sigma_{c}$ | community response variance (see definition below) |
-| $\sigma_{e}$ | environmental variance (equal among species) |
-| $\sigma_{d}$ | demographic variance (equal among species) |
+| $\sigma_{c}^2$ | community response variance (see definition below) |
+| $\sigma_{e}^2$ | environmental variance (equal among species) |
+| $\sigma_{d}^2$ | demographic variance (equal among species) |
 | $S$ | species richness in community |
 | $\tilde{N}$ | harmonic temporal mean of population or community size |
 
+Community response variance is defined as:
+$$
+\sigma_{c}^2 = \frac 
+$$
