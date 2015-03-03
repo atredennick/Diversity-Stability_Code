@@ -2,15 +2,19 @@
 title: "Synchrony notes"
 author: "Andrew Tredennick"
 date: "March 2, 2015"
-output: html_document
+output: pdf_document
 ---
 
+
+
+Some mathematical details
+-------------------------
 From Loreau and de Mazancourt (2008, American Naturalist: [link](http://www.cbtm-moulis.com/fichiers_site/a2992ctm/contenu_pages/loreau_de_mazancourt_am_nat_2008.pdf)), here is the "expected synchrony of per capita population growth rate" under neutral community dynamics:
 
-$$
+\begin{equation}
 \phi_r = \frac{\sigma_{c}^2 + \sigma_{e}^2 + \sigma_{d}^2/(S\tilde{N})}
               {[(1/S)(\sum_{i} \sqrt{\sigma_{c}^2 + \sigma_{e}^2 + \sigma_{d}^2/\tilde{N}})]^2}
-$$
+\end{equation}
 
 Here are parameter definitions:
 
@@ -24,6 +28,277 @@ Here are parameter definitions:
 | $\tilde{N}$ | harmonic temporal mean of population or community size |
 
 Community response variance is defined as:
-$$
-\sigma_{c}^2 = \frac 
-$$
+\begin{equation}
+\sigma_{c}^2 = (r_{m}^2/K^2)\sigma_{N_{T}}^2 
+\end{equation}
+
+All these expressions are derived from Lotka-Volterra model with environmental and demographic stochasticity:
+
+\begin{align}
+r_{i}(t) &= \text{ln}N_{i}(t+1) - \text{ln}N_{i}(t) \\
+&= r_{m}[1 - \frac{N_{T}(t)}{K}] + \sigma_{e}U_{e}(t) + \frac{\sigma_{d}U_{di}(t)}{\sqrt{N_{i}(t)}}
+\end{align}
+
+The model above is a neutral case where species are equivalent. So there are no competition coefficients needed. Likewise, density-dependence takes place at the community level as if it is a single population (thus, $N_{T}(t)/K$). Supposedly, if we can estimate $\sigma_{c}$, $\sigma_{e}$, and $\sigma_{d}$ we can get a null approximation of species synchrony.
+
+Recreate ML and CdM's results
+-----------------------------
+I'm going to try and reproduce their figure 1 to make sure I understand the model well. Here is model in code:
+
+``` {r neutral_model, echo=TRUE}
+neutral_model <- function(N, NT, r, K, sigE, Ue, n_spp){
+  r_out <- numeric(n_spp) 
+  N_out <- numeric(n_spp)
+  for(i in 1:n_spp){
+    lambda <- exp(r[i] * (1-(NT/K)) + sigE*Ue)
+    N_out[i] <- sum(rpois(N[i], lambda))
+  }
+  return(N_out)
+}
+
+#Independent random variables for stochasticity
+t_limit <- 130
+Ue <- rnorm(t_limit,0,1)
+Ud <- rnorm(t_limit,0,1)
+
+#Other parameters
+r <- c(1,1) #neutral
+K <- c(20000,20000) #neutral
+sigE <- c(0.01, 0.01) #neutral
+```
+
+OK, try simulating the model to get figure 1.
+
+``` {r sim_neutral, echo=TRUE, fig.height=3, fig.width=7.5, fig.cap="Reproducing LM and CdM's figure 1. Looks right.", include=TRUE}
+r_save <- matrix(nrow=t_limit, ncol=length(r))
+N_save <- matrix(nrow=t_limit, ncol=length(r))
+N_save[1,] <- K
+for(t in 2:t_limit){
+  mod_out <- neutral_model(N=N_save[t-1,], NT=sum(N_save[t-1,]), r=r, K=K,
+                           sigE=sigE, Ue=Ue[t-1], n_spp=length(r))
+  N_save[t,] <- mod_out
+}
+N_save <- as.data.frame(N_save)
+N_save$year <- c(1:t_limit)
+N_lag <- N_save
+N_lag$lagyear <- N_lag$year+1
+colnames(N_lag)[1:2] <- c("lagN1", "lagN2")
+N_merge <- merge(N_save, N_lag[,c(1,2,4)], by.x = "year", by.y = "lagyear")
+N_merge$pgr1 <- with(N_merge, log(V1/lagN1))
+N_merge$pgr2 <- with(N_merge, log(V2/lagN2))
+
+#Calculate correlations
+rho_n <- cor(N_merge[c(99:129),"V1"], N_merge[c(99:129),"V2"])
+rho_r <- cor(N_merge[c(99:129),"pgr1"], N_merge[c(99:129),"pgr2"])
+
+par(mfrow=c(1,2))
+matplot(as.matrix(N_merge[c(99:129),c("V1", "V2")]), type="l", 
+        col="black", lwd=2, xlab="Time", ylab="Pop Size", 
+        main=paste("rho =", round(rho_n,2)))
+matplot(as.matrix(N_merge[c(99:129),c("pgr1", "pgr2")]), type="l", 
+        col="black", lwd=2, xlab="Time", ylab="Per capita growth rate", 
+        main=paste("rho =", round(rho_r,2)))
+```
+
+Parameters to estimate
+----------------------
+OK, if the idea is to estimate the expected synchrony of per capita growth rates under the neutral assumption, then we need to estimate the following parameters (table include parameters and my idea for estimating them). The key here is to estimate these parameters statistically and using the IPM assuming species equivalence, so instead of modeling by species, we treat the whole community as a single population.
+
+| Parameter | Estimation method |
+| --------- | ----------------- |
+| $K$ | the time-invariant equilibrium area cover (no year reandom effects) |
+| $r_{m}$ | intrinsic growth rate of the "combined species" (grow it alone at low density) |
+| $\sigma_{N_{T}}$ | temporal standard deviation of total community cover directly from data |
+| $\sigma_{c}$ | estimated from $K$, $R_{m}$, and $\sigma_{N_{T}}$ ($(r_{m}^2/K^2)\sigma_{N_{T}}^2$) |
+| $\sigma_{e}$ | standard deviation of "combined species" yearly growth rate time series |
+| $\sigma_{d}$ | average individual-level effect standard deviation from hierarchical vital rate models |
+
+Parameter estimation with one species
+-------------------------------------
+Just to see what we can expect, I am going to try the above approach with Artemesia triparta only fromt the Idaho site. These are the steps:
+
+1. Fit vital rate models with year and individual effects
+2. Average vital rate individual effect variance ($\sigma_{D}$)
+3. Simulate IPM without year effects for equilibrium cover ($K$)
+4. Simulate IPM with year effects (random order) at low density many times to estimate $r_{m}$ (average over time series)
+5. Simulate IPM with year effects at low density (in order) to get the yearly growth rate time series ($ $\sigma_{e}$)
+6. Put it all together for neutral expecteation of synchrony.
+
+## Vital rate regressions
+First we fit the vital rate regressions using INLA. Note that INLA gives us the precision ($\tau$) for the individual-level effect, which we can convert to standard deviation as: $\sigma_{D}^{G} = \sqrt{\tau^-1}$.
+
+``` {r growth_rate, echo=FALSE, results='hide', warning=FALSE, message=FALSE, eval=FALSE}
+#clear everything
+rm(list=ls(all=TRUE))
+library(INLA)
+sppList=sort(c("PSSP","HECO","POSE","ARTR"))
+alpha.effect=c(0.014,0.017,0.026,0.018) # for spp in alphabetical order
+doSpp=sppList[1]
+growDfile=paste("../Data/Idaho/",doSpp,"/growDnoNA.csv",sep="")
+growD=read.csv(growDfile)
+D <- growD  #subset(growD,allEdge==0)
+D$logarea.t0 <- log(D$area.t0)
+D$logarea.t1 <- log(D$area.t1)
+D$quad <- as.character(D$quad)
+  
+##then we moved some specific points:
+##remove outliers (large plants that obviously do not turn into tiny plants) for ARTR only
+if(doSpp=="ARTR"){
+  tmp=which(D$quad=="Q23" & D$year==45 & D$trackID==67)
+  tmp=c(tmp,which(D$quad=="Q12" & D$year==55 & D$trackID==25))
+  tmp=c(tmp,which(D$quad=="Q26" & D$year==45 & D$trackID==73))
+  D=D[-tmp,]
+}else{
+  D=D
+}
+
+# calculate crowding 
+for(i in 1:length(sppList)){
+  distDfile=paste("../Data/Idaho/",sppList[i],"/",sppList[i],"_genet_xy.csv",sep="")
+  if(i==1){
+    distD=read.csv(distDfile)
+    distD$nbSpp=sppList[i]  
+  }else{
+    tmp=read.csv(distDfile)
+    tmp$nbSpp=sppList[i] 
+    distD=rbind(distD,tmp)
+  }
+}
+  
+distD=distD[,c("quad","year","trackID","area","nbSpp","x","y")]
+W=matrix(NA,dim(D)[1],length(sppList))
+for(i in 1:dim(D)[1]){
+  tmpD=subset(distD,year==D$year[i] & quad==D$quad[i])
+  focal=which(tmpD$trackID==D$trackID[i] & tmpD$nbSpp==doSpp)
+  xx=tmpD$x[focal] ; yy=tmpD$y[focal]
+  tmpD$distance=sqrt((xx-tmpD$x)^2+(yy-tmpD$y)^2)
+  tmpD=subset(tmpD,distance>0)
+  if(dim(tmpD)[1]>0){
+    for(k in 1:length(sppList)){
+      sppI=which(tmpD$nbSpp==sppList[k])
+      if(length(sppI)>0){
+        W[i,k]=sum(exp(-1*alpha.effect[k]*tmpD$distance[sppI]^2)*tmpD$area[sppI])         
+      }else{
+        W[i,k]=0
+      }
+    }
+  }else{
+    W[i,]=0
+  }   
+}
+  
+crowd=W[,which(sppList==doSpp)] #for single species
+# crowd = W #for multispecies
+crowd[crowd<1e-99]=0 ###this is very key...
+
+D$yearID <- D$year+max(D$year) #for random year offset on intercept
+D$GroupID <- as.numeric(D$Group)
+D$plantID <- paste(D$quad,D$trackID,sep = "")
+plant <- as.numeric(as.factor(D$plantID))
+```
+
+``` {r inla_grow, echo=TRUE, eval=FALSE}
+formula2 <- logarea.t1 ~ logarea.t0+crowd+
+  f(yearID, model="iid", prior="normal",param=c(0,0.001))+
+  f(GroupID, model="iid", prior="normal",param=c(0,0.001))+
+  f(plantID, model="iid", prior="normal",param=c(0,0.001))+
+  f(year, logarea.t0, model="iid", prior="normal",param=c(0,0.001))
+  
+outINLA <- inla(formula2, data=D,
+                family=c("gaussian"), verbose=TRUE,
+                control.predictor = list(link = 1),
+                control.compute=list(dic=T,mlik=T),
+                control.inla = list(h = 1e-6))
+```
+
+``` {r surv_rates, echo=FALSE, results='hide', warning=FALSE, message=FALSE, eval=FALSE}
+sppList=c("ARTR","HECO","POSE","PSSP")
+alpha.effect=c(0.004,0.048,0.040,0.017) # for spp in alphabetical order
+
+  doSpp=sppList[1]
+  outfile=paste("Surv_params_",doSpp,".csv",sep="")
+  
+  growDfile=paste("../Data/Idaho/",doSpp,"/survD.csv",sep="")
+  growD=read.csv(growDfile)
+#   growD$Group=as.factor(substr(growD$quad,1,1)) ##add Group information
+  
+  D=growD  #subset(growD,allEdge==0)
+  D$logarea=log(D$area)
+  D$quad=as.character(D$quad)
+  D$year=as.factor(D$year)
+
+  # calculate crowding 
+  for(i in 1:length(sppList)){
+    distDfile=paste("../Data/Idaho/",sppList[i],"/",sppList[i],"_genet_xy.csv",sep="")
+    if(i==1){
+      distD=read.csv(distDfile)
+      distD$nbSpp=sppList[i]  
+    }else{
+      tmp=read.csv(distDfile)
+      tmp$nbSpp=sppList[i] 
+      distD=rbind(distD,tmp)
+    }
+  }
+  
+  distD=distD[,c("quad","year","trackID","area","nbSpp","x","y")]
+  W=matrix(NA,dim(D)[1],length(sppList))
+  for(i in 1:dim(D)[1]){
+    tmpD=subset(distD,year==D$year[i] & quad==D$quad[i])
+    focal=which(tmpD$trackID==D$trackID[i] & tmpD$nbSpp==doSpp)
+    xx=tmpD$x[focal] ; yy=tmpD$y[focal]
+    tmpD$distance=sqrt((xx-tmpD$x)^2+(yy-tmpD$y)^2)
+    tmpD=subset(tmpD,distance>0)
+    if(dim(tmpD)[1]>0){
+      for(k in 1:length(sppList)){
+        sppI=which(tmpD$nbSpp==sppList[k])
+        if(length(sppI)>0){
+          W[i,k]=sum(exp(-1*alpha.effect[k]*tmpD$distance[sppI]^2)*tmpD$area[sppI])         
+        }else{
+          W[i,k]=0
+        }
+      }
+    }else{
+      W[i,]=0
+    }   
+  }
+  
+  crowd=W[,which(sppList==doSpp)] #for single species
+
+  #Set up ID variables for INLA random effects
+  D$yearID <- D$year #for random year offset on intercept
+  D$GroupID <- as.numeric(D$Group)
+  D$plantID <- paste(D$quad,D$trackID,sep = "")
+  
+  #Instead of full model, match the structure of the quadrat-based IBM regressions
+  formula2 <- survives ~ logarea+crowd+
+    f(yearID, model="iid", prior="normal",param=c(1,0.001))+
+    f(GroupID, model="iid", prior="normal",param=c(0,0.001))+
+    f(plantID, model="iid", prior="normal",param=c(0,0.001))+
+    f(year, logarea, model="iid", prior="normal",param=c(0,0.001))
+  
+  outINLA <- inla(formula2, data=D,
+                  family=c("binomial"), verbose=TRUE,
+                  control.compute=list(dic=T,mlik=T),
+                  control.predictor = list(link = 1),
+                  control.inla = list(h = 1e-6),
+                  Ntrials=rep(1,nrow(D)))
+  summary(outINLA)
+```
+
+So, the demographic variance (as we have defined it, individual-level variation) for growth is: $\sigma_{d}^G = $ 0.3273 (that is $1/\sqrt{(\tau^{-1})}$, where $\tau$ is the precision of the individual plant effect in the model). We can do this for the other vital rates too, and we get the following results:
+
+| Vital Rate | $\sigma_{d}$ | $\sigma_{d}^2$ |
+| ---------- | ------------ | -------------- |
+| Growth | 0.3273 | `r I(0.3273^2)` |
+| Survival | 0.9643 | `r I(0.9643^2)` |
+| AVERAGE | `r I(mean(c(0.3273,0.9643)))` | `r I(mean(c(0.3273^2,0.9643^2)))` |
+
+
+
+
+
+
+
+
+
+
