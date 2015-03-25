@@ -5,7 +5,6 @@ header-includes:
    - \usepackage{lineno}
    - \linenumbers
    - \usepackage{setspace}
-   - \doublespacing
 
 ## rmarkdown render options
 output:
@@ -44,13 +43,15 @@ get_eta <- function(y_matrix){
 ### Andrew T. Tredennick and ... and ...
 Introduction
 ------------
-Asynchrony in population dynamics 
+Asynchrony in population dynamics among co-occuring plant species is the most effective route to stabilize ecosystem-level properties like annual biomass production (Loreau and de Mazancourt 2013, de Mazancourt et al. 2013). Species-specific responses to environmental conditions, in particular, can stabilize ecosystem properties even as environmental forcings fluctuate through time. Such asynchrony of species dynamics in response to the environment has the potential to buffer ecosystems subjected to an increasingly variable climate. Thus, the extent to which natural communities exhibit asynchronous dynamics determines, in part, their ability to cope with climate change induced variability.
+
+Theory suggests that community asynchrony is driven by a combination of internal and external forces. Internal to the community, demographic stochasticity can induce asynchronous dynamics when species tend to fluctuate independently in a constant environment (Loreau and de Mazancourt 2008). However, species do not live in constant environments. Moreover, species that co-occur but occupy the same trophic level tend to compete for similar abiotic resources, the availability of which varies annually. For example, water is the limiting resource in semi-arid grasslands so annual net primary productivity tends to track annual precipitation (Knapp citation?), regardless of species (CITATION).
+
+Here we use exceptional longterm datasets from five North American grasslands to calculate community synchrony. We then fit multispecies population models to the data to evaluate the relative contribution of species' environmental responses and demographic stochasticity to community synchrony. Our focus is on temporal trends of per capita growth rates becuase these best reflect the short-term responses of populations to environmental conditions that fluctuate on annual time scales.
 
 The Neutral Expectation
 -----------------------
 Before calculating and interpreting community synchrony, it is helpful to explicitly define the null hypothesis against which observed synchrony will be compared. Unlike some previous studies, we start with the neutral expectation that coexisting species within the same trophic level should fluctuate in perfect synchrony.
-
-Previous work to assess the ubiquity of asynchronous or compensatory dynamics (e.g., Houlahan) in natural communities has suffered from three flaws: (1) they lacked a synchrony metric that does not rely on pair-wise comparisons (see Brown et al. 2004 for critique summed negative covariances), (2) they compared observed synchrony to the biologically unrealistic null hypothesis of independent species fluctuations, and (3) they used population size, or proxies thereof, to calculate synchrony rather than per capita population growth rates that reflect the environmental forces governing population dynamics from one generation to the next. 
 
 Methods
 -------
