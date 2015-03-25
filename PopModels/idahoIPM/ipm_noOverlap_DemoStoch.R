@@ -11,14 +11,15 @@ perturbTemp=F
 # climYrSave=read.csv("climYears.csv")  # use same sequence of years used for observed run
 # randYrSave=read.csv("randYears.csv")
 A=10000 #Area of 100cm x 100cm quadrat
-tlimit=500 ## number of years to simulate
-burn.in=50    # years to cut before calculations
+tlimit=250 ## number of years to simulate
+burn.in=100    # years to cut before calculations
+# sppList=c("ARTR","HECO","POSE","PSSP")
 sppList=c("ARTR","HECO","POSE","PSSP")
-bigM=c(200,75,50,50)     #Set matrix dimension for each species
+bigM=c(50,75,50,75)     #Set matrix dimension for each species
 maxSize=c(3000,202,260,225)    # in cm^2: PSSP=225 HECO=202  POSE=260  ARTR=3000  # minSize=0.2  cm^2
 Nyrs=22
 doGroup=NA  # NA for spatial avg., values 1-6 for a specific group
-constant=T 
+constant=T
 NoOverlap.Inter=F
 compScale=F
 
@@ -99,8 +100,8 @@ if(compScale==T){
 # (II) Simulation length, Matrix size and initial vectors
 #============================================================================================#
 
-v=v.r=b.r=expv=Cr=WmatG=WmatS=list(4)
-h=r.L=r.U=Ctot=numeric(4)
+v=v.r=b.r=expv=Cr=WmatG=WmatS=list(length(sppList))
+h=r.L=r.U=Ctot=numeric(length(sppList))
 for(i in 1:Nspp){
   
   # minimum (0.9*minimum size from data) and maximum sizes (1.1*maximum size from data)
@@ -143,7 +144,7 @@ library(statmod)
 ## combined kernel
 make.K.values=function(v,u,muWG,muWS, #state variables
                        Rpars,rpa,Gpars,Spars,doYear,doSpp){  #growth arguments
-  f(v,u,Rpars,rpa,doSpp)+S(u,muWS,Spars,doYear,doSpp)*G(v,u,muWG,Gpars,doYear,doSpp) 
+  f(v,u,Rpars,rpa,doSpp)+rbinom(length(u),1,S(u,muWS,Spars,doYear,doSpp))*G(v,u,muWG,Gpars,doYear,doSpp) 
 }
 
 # Function to make iteration matrix based only on mean crowding
@@ -214,6 +215,7 @@ matrix.image=function(x,y,A,col=topo.colors(100),...) {
 ## initial population density vector
 nt=v
 for(i in 1:Nspp) nt[[i]][]=0.1
+# nt[[1]][]=0
 new.nt=nt
 ## initial population density vector
 
@@ -293,8 +295,8 @@ for (i in 2:(tlimit)){
     if(cover[doSpp]>0){    
       # make kernels and project
       K.matrix=make.K.matrix(v[[doSpp]],WmatG[[doSpp]],WmatS[[doSpp]],Rpars,rpa,Gpars,Spars,doYear,doSpp)	
-      new.nt[[doSpp]]=rpois(length(nt[[doSpp]]),K.matrix%*%nt[[doSpp]]) 
-#       new.nt[[doSpp]]=K.matrix%*%nt[[doSpp]]
+#       new.nt[[doSpp]]=rpois(length(nt[[doSpp]]),K.matrix%*%nt[[doSpp]]) 
+      new.nt[[doSpp]]=K.matrix%*%nt[[doSpp]]
       sizeSave[[doSpp]][,i]=new.nt[[doSpp]]/sum(new.nt[[doSpp]])  
     }    
   } # next species
@@ -323,35 +325,61 @@ abline(h=0)
 boxplot(as.data.frame(Nsave[(burn.in+1):tlimit,]),ylab="Density",names=sppList,col=myCol)
 abline(h=0)
 # average size distribution  
-plot(1,1,type="n",xlim=c(log(0.15),log(max(maxSize))),ylim=c(0,0.1),
-  xlab="Size",ylab="Frequency")
-for(i in 1:Nspp){
- lines(v[[i]],rowMeans(sizeSave[[i]][,(burn.in+1):tlimit]),col=myCol[i], lwd=3)
-}
+# plot(1,1,type="n",xlim=c(log(0.15),log(max(maxSize))),ylim=c(0,0.1),
+#   xlab="Size",ylab="Frequency")
+# for(i in 1:Nspp){
+#  lines(v[[i]],rowMeans(sizeSave[[i]][,(burn.in+1):tlimit]),col=myCol[i], lwd=3)
+# }
 # example time series
 matplot((burn.in+1):tlimit,100*covSave[(burn.in+1):tlimit,],type="l",col=myCol,
   xlab="Time",ylab="Cover (%)")
 totalCov <- apply(X = covSave[(burn.in+1):tlimit,], MARGIN = 1, FUN = sum)
 lines((burn.in+1):tlimit, 100*totalCov, lwd=1, lty="dotted", col="grey")
-plot((burn.in+1):tlimit, 100*totalCov, lwd=2, col="black", type="l")
-cv <- (sd(totalCov)^2)/mean(totalCov)
-cv
+# plot((burn.in+1):tlimit, 100*totalCov, lwd=2, col="black", type="l")
+# cv <- (sd(totalCov)^2)/mean(totalCov)
+# cv
+
+#Plot per capita growth rates
+cov_d <- as.data.frame(covSave)
+colnames(cov_d) <- sppList
+cov_d$year <- c(1:nrow(cov_d))
+lag_d <- cov_d
+lag_d$lagYear <- lag_d$year+1
+colnames(lag_d)[1:4] <- paste(sppList,".t0", sep="")
+lag_d <- lag_d[,-5]
+all_d <- merge(cov_d, lag_d, by.x = "year", by.y="lagYear")
+transitions <- nrow(all_d)
+obs_gr <- matrix(nrow=transitions, ncol=length(sppList))
+for(i in 1:transitions){
+  obs_gr[i,] <- as.numeric(log(all_d[i,2:5]/all_d[i,6:9]))
+}
+library(synchrony)
+synch <- community.sync(obs_gr[(burn.in+1):(tlimit-1),2:4])
+matplot((burn.in):(burn.in+30),obs_gr[(burn.in):(burn.in+30),],type="l",col=myCol,
+        xlab="Time",ylab="Per capita growth rate", main=round(as.numeric(synch[1]),2))
+matplot((burn.in):(burn.in+30),obs_gr[(burn.in):(burn.in+30),],pch=19,col=myCol,
+        add=TRUE)
 
 #get average cv over similar timespan as observations (22 consecutive years from random starting points)
 #for fair comparison
-lim <- 10000
-cvVec <- numeric(lim)
-for(i in 1:lim){
-  tmp <- sample(seq(1,(length(totalCov)-22)), 1)
-  tmp2 <- seq(tmp,tmp+21)
-  tmpCov <- totalCov[tmp2]
-  cvVec[i] <- (sd(tmpCov))/mean(tmpCov)
-}
-par(mfrow=c(1,1),tcl=-0.2,mgp=c(2,0.5,0)) 
-plot(density(cvVec, adjust=4), lwd=4, main="", xlab="community temporal CV", col="dodgerblue",
-     ylab="estimated probability density")
-# abline(v = mean(cvVec), lty=2, lwd=3, col="grey25")
-abline(v = median(cvVec), lty=3, col="coral", lwd=3)
-abline(v=0.2, lwd=3, lty=1)
+# lim <- 10000
+# cvVec <- numeric(lim)
+# for(i in 1:lim){
+#   tmp <- sample(seq(1,(length(totalCov)-22)), 1)
+#   tmp2 <- seq(tmp,tmp+21)
+#   tmpCov <- totalCov[tmp2]
+#   cvVec[i] <- (sd(tmpCov))/mean(tmpCov)
+# }
+# par(mfrow=c(1,1),tcl=-0.2,mgp=c(2,0.5,0)) 
+# plot(density(cvVec, adjust=4), lwd=4, main="", xlab="community temporal CV", col="dodgerblue",
+#      ylab="estimated probability density")
+# # abline(v = mean(cvVec), lty=2, lwd=3, col="grey25")
+# abline(v = median(cvVec), lty=3, col="coral", lwd=3)
+# abline(v=0.2, lwd=3, lty=1)
 
+par(mfrow=c(1,1))
+barplot(height = c(0.5,0.36,0.59), names.arg = c("both", "demo only", "env only"), space = 0.5,
+        ylab="Synchrony", xlab="Simulation", ylim=c(0,1))
+abline(h = 0.5, col="black", lty=2)
+box()
 
