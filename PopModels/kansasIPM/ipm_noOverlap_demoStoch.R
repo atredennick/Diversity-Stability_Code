@@ -388,23 +388,23 @@ matplot((burn.in):(burn.in+30),obs_gr[(burn.in):(burn.in+30),],pch=19,col=myCol,
 # box()
 
 
-## PLOT FROM 3-25-2015
-library(ggplot2)
-synch_data <- data.frame(site = rep(c("Idaho", "Kansas"), each=3),
-                         simulation = rep(c("Both", "Demo only", "Env only"), times=2),
-                         synchrony = c(0.6,0.49,0.58,
-                                       0.61,0.51,0.65))
-synch_diff <- data.frame(site = rep(c("Idaho", "Kansas"), each=2),
-                         simulation = rep(c("Env. Stoch. Removed", "Dem. Stoch. Removed"), times=2),
-                         synchrony = c(-0.11, -0.02,
-                                       -0.1, 0.04))
-
-ggplot(synch_diff)+
-  geom_bar(aes(x=site, y=synchrony, fill=simulation), 
-           stat="identity", position='dodge', size=2)+
-  geom_hline(aes(yintercept=0))+
-  ylab("Perturbed Synchrony - Unperturbed Synchrony")+
-  theme_bw()
+# ## PLOT FROM 3-25-2015
+# library(ggplot2)
+# synch_data <- data.frame(site = rep(c("Idaho", "Kansas"), each=3),
+#                          simulation = rep(c("Both", "Demo only", "Env only"), times=2),
+#                          synchrony = c(0.6,0.49,0.58,
+#                                        0.61,0.51,0.65))
+# synch_diff <- data.frame(site = rep(c("Idaho", "Kansas"), each=2),
+#                          simulation = rep(c("Env. Stoch. Removed", "Dem. Stoch. Removed"), times=2),
+#                          synchrony = c(-0.11, -0.02,
+#                                        -0.1, 0.04))
+# 
+# ggplot(synch_diff)+
+#   geom_bar(aes(x=site, y=synchrony, fill=simulation), 
+#            stat="identity", position='dodge', size=2)+
+#   geom_hline(aes(yintercept=0))+
+#   ylab("Perturbed Synchrony - Unperturbed Synchrony")+
+#   theme_bw()
 
 
 
