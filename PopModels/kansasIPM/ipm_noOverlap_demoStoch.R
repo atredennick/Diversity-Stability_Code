@@ -12,11 +12,11 @@ perturbTemp=F
 # randYrSave=read.csv("randYears.csv")
 A=10000 #Area of 100cm x 100cm quadrat
 tlimit=1000 ## number of years to simulate
-burn.in=500    # years to cut before calculations
-sppList=c("ARTR","HECO","POSE","PSSP")
-bigM=c(50,75,50,75)     #Set matrix dimension for each species
-maxSize=c(3000,202,260,225)    # in cm^2: PSSP=225 HECO=202  POSE=260  ARTR=3000  # minSize=0.2  cm^2
-Nyrs=22
+burn.in=500 # years to cut before calculations
+sppList=c("BOCU","BOHI","SCSC")
+bigM<-c(75,50,75) #the dimension of BIG MATRIX
+maxSize<-c(3000,900,3000) 
+Nyrs=34
 doGroup=NA  # NA for spatial avg., values 1-6 for a specific group
 constant=F
 NoOverlap.Inter=F
@@ -37,16 +37,16 @@ Nspp=length(sppList)
 # set up survival parameters and function
 source("./survival/import2ipm_noOverlap.r")
 # set up growth parameters and function
-source("./growth/cache/import2ipm_noOverlap.r")
+source("./growth/import2ipm_noOverlap.r")
 # set up recruitment parameters and function
 source("./recruitment/import2ipm.r")
 
 
 # model spatial group variation (or not)
-if(!is.na(doGroup)){
-  Spars$intcpt=Spars$intcpt+Spars$intcpt.gr[doGroup,]
-  Gpars$intcpt=Gpars$intcpt+Gpars$intcpt.gr[doGroup,]
-  Rpars$intcpt.yr=Rpars$intcpt.yr+matrix(Rpars$intcpt.gr[doGroup,],Nyrs,Nspp,byrow=T)
+if(is.na(doGroup)){
+  Spars$intcpt.gr[]=0
+  Gpars$intcpt.gr[]=0
+  Rpars$intcpt.gr[]=0
 }
 
 # PERTURB PARAMETERS -------------------------------------
@@ -87,6 +87,7 @@ if(constant==T){
     Spars$intcpt.yr[]=0;Spars$slope.yr[]=0    
 }
 
+
 if(compScale==T){
   tmp <- matrix(rep(-0.1, length(Gpars$nb)), nrow = 4)
   for(i in 1:Nspp){
@@ -99,8 +100,8 @@ if(compScale==T){
 # (II) Simulation length, Matrix size and initial vectors
 #============================================================================================#
 
-v=v.r=b.r=expv=Cr=WmatG=WmatS=list(length(sppList))
-h=r.L=r.U=Ctot=numeric(length(sppList))
+v=v.r=b.r=expv=Cr=WmatG=WmatS=list(4)
+h=r.L=r.U=Ctot=numeric(4)
 for(i in 1:Nspp){
   
   # minimum (0.9*minimum size from data) and maximum sizes (1.1*maximum size from data)
@@ -141,15 +142,15 @@ library(msm)
 library(statmod)  
 
 ## combined kernel
-# make.K.values=function(v,u,muWG,muWS, #state variables
-#                        Rpars,rpa,Gpars,Spars,doYear,doSpp){  #growth arguments
-#   f(v,u,Rpars,rpa,doSpp)+rbinom(length(u),1,S(u,muWS,Spars,doYear,doSpp))*G(v,u,muWG,Gpars,doYear,doSpp) 
-# }
-
 make.K.values=function(v,u,muWG,muWS, #state variables
                        Rpars,rpa,Gpars,Spars,doYear,doSpp){  #growth arguments
   f(v,u,Rpars,rpa,doSpp)+S(u,muWS,Spars,doYear,doSpp)*G(v,u,muWG,Gpars,doYear,doSpp) 
 }
+
+# make.K.values=function(v,u,muWG,muWS, #state variables
+#                        Rpars,rpa,Gpars,Spars,doYear,doSpp){  #growth arguments
+#   f(v,u,Rpars,rpa,doSpp)+rbinom(length(u),1,S(u,muWS,Spars,doYear,doSpp))*G(v,u,muWG,Gpars,doYear,doSpp) 
+# }
 
 # Function to make iteration matrix based only on mean crowding
 make.K.matrix=function(v,muWG,muWS,Rpars,rpa,Gpars,Spars,doYear,doSpp) {
@@ -219,7 +220,7 @@ matrix.image=function(x,y,A,col=topo.colors(100),...) {
 ## initial population density vector
 nt=v
 for(i in 1:Nspp) nt[[i]][]=0.1
-nt[[1]][]=0
+# nt[[2]][] <- 0
 new.nt=nt
 ## initial population density vector
 
@@ -299,8 +300,7 @@ for (i in 2:(tlimit)){
     if(cover[doSpp]>0){    
       # make kernels and project
       K.matrix=make.K.matrix(v[[doSpp]],WmatG[[doSpp]],WmatS[[doSpp]],Rpars,rpa,Gpars,Spars,doYear,doSpp)	
-#       new.nt[[doSpp]]=rpois(length(nt[[doSpp]]),K.matrix%*%nt[[doSpp]]) 
-      new.nt[[doSpp]]=K.matrix%*%nt[[doSpp]]
+      new.nt[[doSpp]]=K.matrix%*%nt[[doSpp]] 
       sizeSave[[doSpp]][,i]=new.nt[[doSpp]]/sum(new.nt[[doSpp]])  
     }    
   } # next species
@@ -324,7 +324,7 @@ par(mfrow=c(2,2),tcl=-0.2,mgp=c(2,0.5,0))
 myCol=c("black","gold","blue","red")
 #cover
 boxplot(as.data.frame(100*covSave[(burn.in+1):tlimit,]),ylab="Cover (%)",names=sppList,col=myCol)
-# abline(h=0, add=TRUE)
+# abline(h=0)
 #density
 boxplot(as.data.frame(Nsave[(burn.in+1):tlimit,]),ylab="Density",names=sppList,col=myCol)
 # abline(h=0)
@@ -335,8 +335,8 @@ boxplot(as.data.frame(Nsave[(burn.in+1):tlimit,]),ylab="Density",names=sppList,c
 #  lines(v[[i]],rowMeans(sizeSave[[i]][,(burn.in+1):tlimit]),col=myCol[i], lwd=3)
 # }
 # example time series
-matplot((burn.in+1):tlimit,100*covSave[(burn.in+1):tlimit,],type="l",col=myCol,
-  xlab="Time",ylab="Cover (%)")
+matplot(1:tlimit,100*covSave[1:tlimit,],type="l",col=myCol,
+        xlab="Time",ylab="Cover (%)")
 totalCov <- apply(X = covSave[(burn.in+1):tlimit,], MARGIN = 1, FUN = sum)
 lines((burn.in+1):tlimit, 100*totalCov, lwd=1, lty="dotted", col="grey")
 # plot((burn.in+1):tlimit, 100*totalCov, lwd=2, col="black", type="l")
@@ -349,20 +349,20 @@ colnames(cov_d) <- sppList
 cov_d$year <- c(1:nrow(cov_d))
 lag_d <- cov_d
 lag_d$lagYear <- lag_d$year+1
-colnames(lag_d)[1:4] <- paste(sppList,".t0", sep="")
-lag_d <- lag_d[,-5]
+colnames(lag_d)[1:3] <- paste(sppList,".t0", sep="")
+lag_d <- lag_d[,-4]
 all_d <- merge(cov_d, lag_d, by.x = "year", by.y="lagYear")
 transitions <- nrow(all_d)
 obs_gr <- matrix(nrow=transitions, ncol=length(sppList))
 for(i in 1:transitions){
-  obs_gr[i,] <- as.numeric(log(all_d[i,2:5]/all_d[i,6:9]))
+  obs_gr[i,] <- as.numeric(log(all_d[i,2:4]/all_d[i,5:7]))
 }
 library(synchrony)
-synch <- community.sync(obs_gr[(burn.in+1):(tlimit-1),2:4])
+synch <- community.sync(obs_gr[(burn.in+1):(tlimit-1),c(1,3)])
 matplot((burn.in):(burn.in+30),obs_gr[(burn.in):(burn.in+30),],type="l",col=myCol,
         xlab="Time",ylab="Per capita growth rate", main=round(as.numeric(synch[1]),2))
-matplot((burn.in):(burn.in+30),obs_gr[(burn.in):(burn.in+30),],pch=19,col=myCol,add=TRUE)
-
+matplot((burn.in):(burn.in+30),obs_gr[(burn.in):(burn.in+30),],pch=19,col=myCol,
+        add=TRUE)
 
 #get average cv over similar timespan as observations (22 consecutive years from random starting points)
 #for fair comparison
@@ -382,8 +382,29 @@ matplot((burn.in):(burn.in+30),obs_gr[(burn.in):(burn.in+30),],pch=19,col=myCol,
 # abline(v=0.2, lwd=3, lty=1)
 # 
 # par(mfrow=c(1,1))
-# barplot(height = c(0.5,0.36,0.59), names.arg = c("both", "demo only", "env only"), space = 0.5,
+# barplot(height = c(0.59,0.5,0.6), names.arg = c("both", "demo only", "env only"), space = 0.5,
 #         ylab="Synchrony", xlab="Simulation", ylim=c(0,1))
-# abline(h = 0.5, col="black", lty=2)
+# abline(h = 0.59, col="black", lty=2)
 # box()
+
+
+## PLOT FROM 3-25-2015
+library(ggplot2)
+synch_data <- data.frame(site = rep(c("Idaho", "Kansas"), each=3),
+                         simulation = rep(c("Both", "Demo only", "Env only"), times=2),
+                         synchrony = c(0.6,0.49,0.58,
+                                       0.61,0.51,0.65))
+synch_diff <- data.frame(site = rep(c("Idaho", "Kansas"), each=2),
+                         simulation = rep(c("Env. Stoch. Removed", "Dem. Stoch. Removed"), times=2),
+                         synchrony = c(-0.11, -0.02,
+                                       -0.1, 0.04))
+
+ggplot(synch_diff)+
+  geom_bar(aes(x=site, y=synchrony, fill=simulation), 
+           stat="identity", position='dodge', size=2)+
+  geom_hline(aes(yintercept=0))+
+  ylab("Perturbed Synchrony - Unperturbed Synchrony")+
+  theme_bw()
+
+
 
