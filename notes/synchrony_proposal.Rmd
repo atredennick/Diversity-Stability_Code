@@ -15,7 +15,7 @@ fontsize: 12pt
 geometry: margin=1in
 
 ---
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+```{r set_up, echo=FALSE, warning=FALSE, message=FALSE}
 cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", 
                "#CC79A7", "#0072B2", "#D55E00", "#CC79A7")
 library(reshape2); library(ggplot2); library(gridExtra)
@@ -39,19 +39,19 @@ get_eta <- function(y_matrix){
 ```
 
 
+\begin{center}
+Andrew T. Tredennick and ... and ...
+\end{center}
 
-### Andrew T. Tredennick and ... and ...
 Introduction
 ------------
-Asynchrony in population dynamics among co-occuring plant species is the most effective route to stabilize ecosystem-level properties like annual biomass production (Loreau and de Mazancourt 2013, de Mazancourt et al. 2013). Species-specific responses to environmental conditions, in particular, can stabilize ecosystem properties even as environmental forcings fluctuate through time. Such asynchrony of species dynamics in response to the environment has the potential to buffer ecosystems subjected to an increasingly variable climate. Thus, the extent to which natural communities exhibit asynchronous dynamics determines, in part, their ability to cope with climate change induced variability.
+Asynchrony in population dynamics among co-occuring plant species stabilizes ecosystem-level properties like annual biomass production (Hector et al. 2010, Loreau and de Mazancourt 2013, de Mazancourt et al. 2013, Hautier et al. 2014). Species-specific responses to environmental conditions, in particular, can stabilize ecosystem properties even as environmental forcings fluctuate through time. Such asynchrony of species dynamics in response to the environment has the potential to buffer ecosystems subjected to an increasingly variable climate. Thus, the extent to which natural communities exhibit asynchronous dynamics determines, in part, their ability to cope with interannual climate extremes that are projected to become more common.
 
-Theory suggests that community asynchrony is driven by a combination of internal and external forces. Internal to the community, demographic stochasticity can induce asynchronous dynamics when species tend to fluctuate independently in a constant environment (Loreau and de Mazancourt 2008). However, species do not live in constant environments. Moreover, species that co-occur but occupy the same trophic level tend to compete for similar abiotic resources, the availability of which varies annually. For example, water is the limiting resource in semi-arid grasslands so annual net primary productivity tends to track annual precipitation (Knapp citation?), regardless of species (CITATION).
+Theory suggests that community synchrony is driven by a combination of internal and external forces. Internal to the community, demographic stochasticity can induce asynchronous dynamics when species tend to fluctuate independently in a constant environment (Loreau and de Mazancourt 2008). However, species live in non-constant environments that act as strong external drivers of community dynamics. Environmental variability can induce asynchronous dynamics when species' responses to environmental conditions are temporally uncorrelated. When species respond similarly to environmental conditions, community dynamics become more synchronized (Gonzalez and Loreau 2009, Loreau and de Mazancourt 2008).
 
-Here we use exceptional longterm datasets from five North American grasslands to calculate community synchrony. We then fit multispecies population models to the data to evaluate the relative contribution of species' environmental responses and demographic stochasticity to community synchrony. Our focus is on temporal trends of per capita growth rates becuase these best reflect the short-term responses of populations to environmental conditions that fluctuate on annual time scales.
+Given that environmental drivers can either increase or decrease species synchrony, what should be our null expectation of community synchrony? Past studies have assumed the appropriate null is independent species fluctuations (Houlahan PNAS), but this only occurs in the absence of environmental forcing. Species that co-occur but occupy the same trophic level tend to compete for similar abiotic resources, the availability of which varies annually. For example, water is the limiting resource in semi-arid grasslands so annual net primary productivity tends to track annual precipitation (Knapp citation?), regardless of species (CITATION). Taken to the limit, complete similarity among species in terms of resource use and environmentally-mediated growth rates, communities would exhibit neutral dynamics (Hubbell book). Thus, as suggested by theory (Loreau and de Mazancourt 2008) we our neutral expectation is that plant species that co-occur in water-limited grasslands will exhibit perfectly synchronous species dynamics since their growth is strongly driven by precipitation (Knapp again?).
 
-The Neutral Expectation
------------------------
-Before calculating and interpreting community synchrony, it is helpful to explicitly define the null hypothesis against which observed synchrony will be compared. Unlike some previous studies, we start with the neutral expectation that coexisting species within the same trophic level should fluctuate in perfect synchrony.
+It is impossible to draw inference on the relative contribution of demographic and environmental stochasticity on synchrony based on empirical estimates alone.  Here we use exceptional longterm datasets from five North American grasslands (Chu and Adler 2015) to calculate community synchrony. We then fit multispecies population models to the data for dominant species to evaluate the relative contribution of species' environmental responses and demographic stochasticity to community synchrony. Sparse data on sub-dominant species constrained model fitting to dominant species, that account for ##% - ##% of plant abundance across the five sites. Our focus is on temporal trends of per capita growth rates becuase these best reflect the short-term responses of populations to environmental conditions that fluctuate on annual time scales.
 
 Methods
 -------
@@ -238,7 +238,7 @@ g_timeseries
 
 Results and Discussion
 -------
-Synchrony of per capita growth rates among species in each community were in the range ## - ## with an average synchrony of ## (Table #). If our null expectation had been independent fluctuations, then we would conclude that these communities are far from exhibiting asynchronous dynamics. However, based on neutral theory, we expected the species to fluctuate in perfect synchrony. Thus, our results show that these communities exhibit weak asynchrony since any asynchrony in temporal dynamics drives $\phi_r$ away from zero.  
+Synchrony of per capita growth rates among species in each community were in the range ## - ## with an average synchrony of ## (Table #). If our null expectation had been independent fluctuations, then we would conclude that these communities are far from exhibiting asynchronous dynamics that can stabilize annual productivity. However, based on neutral theory we expected species to fluctuate in perfect synchrony. Under that light our results show that these communities exhibit weak asynchrony since any asynchrony in temporal dynamics drives $\phi_r$ away from zero.  
 
 ```{r synchrony_table, results='asis',message=FALSE, comment=NA, echo=FALSE}
 ####
