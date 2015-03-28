@@ -49,9 +49,9 @@ Asynchrony in population dynamics among co-occuring plant species stabilizes eco
 
 Theory suggests that community synchrony is driven by a combination of internal and external forces. Internal to the community, demographic stochasticity can induce asynchronous dynamics when species tend to fluctuate independently in a constant environment (Loreau and de Mazancourt 2008). However, species live in non-constant environments that act as strong external drivers of community dynamics. Environmental variability can induce asynchronous dynamics when species' responses to environmental conditions are temporally uncorrelated. When species respond similarly to environmental conditions, community dynamics become more synchronized (Gonzalez and Loreau 2009, Loreau and de Mazancourt 2008).
 
-Given that environmental drivers can either increase or decrease species synchrony, what should be our null expectation of community synchrony? Past studies have assumed the appropriate null is independent species fluctuations (Houlahan PNAS), but this only occurs in the absence of environmental forcing. Species that co-occur but occupy the same trophic level tend to compete for similar abiotic resources, the availability of which varies annually. For example, water is the limiting resource in semi-arid grasslands so annual net primary productivity tends to track annual precipitation (Knapp citation?), regardless of species (CITATION). Taken to the limit, complete similarity among species in terms of resource use and environmentally-mediated growth rates, communities would exhibit neutral dynamics (Hubbell book). Thus, as suggested by theory (Loreau and de Mazancourt 2008) we our neutral expectation is that plant species that co-occur in water-limited grasslands will exhibit perfectly synchronous species dynamics since their growth is strongly driven by precipitation (Knapp again?).
+Given that environmental drivers can either increase or decrease species synchrony, what should be our null expectation of community synchrony? Past studies have assumed the appropriate null is independent species fluctuations (Houlahan PNAS), but this only occurs in the absence of environmental forcing. Species that co-occur but occupy the same trophic level tend to compete for similar abiotic resources, the availability of which varies annually. For example, water is the limiting resource in semi-arid grasslands so annual net primary productivity tends to track annual precipitation (Knapp citation?), regardless of species (CITATION). Taken to the limit, complete similarity among species in terms of resource use and environmentally-mediated growth rates results in communities that exhibit neutral dynamics (Hubbell book). Thus, as suggested by theory (Loreau and de Mazancourt 2008) our neutral expectation is that plant species that co-occur in water-limited grasslands will exhibit perfectly synchronous species dynamics since their growth is strongly driven by precipitation (Knapp again?).
 
-It is impossible to draw inference on the relative contribution of demographic and environmental stochasticity on synchrony based on empirical estimates alone.  Here we use exceptional longterm datasets from five North American grasslands (Chu and Adler 2015) to calculate community synchrony. We then fit multispecies population models to the data for dominant species to evaluate the relative contribution of species' environmental responses and demographic stochasticity to community synchrony. Sparse data on sub-dominant species constrained model fitting to dominant species, that account for ##% - ##% of plant abundance across the five sites. Our focus is on temporal trends of per capita growth rates becuase these best reflect the short-term responses of populations to environmental conditions that fluctuate on annual time scales.
+It is impossible to draw inference on the relative contribution of demographic and environmental stochasticity on synchrony based on empirical estimates alone, so our analysis involves two steps.  First, we use exceptional longterm datasets from five North American grasslands (Chu and Adler 2015) to calculate community synchrony. Second, we fit multispecies population models to the data for dominant species to evaluate the relative contribution of species' environmental responses and demographic stochasticity to community synchrony. Sparse data on sub-dominant species constrained model fitting to dominant species that account for ##% - ##% of local plant abundance at their respective sites. Our focus is on temporal trends of per capita growth rates becuase these best reflect the short-term responses of populations to environmental conditions that fluctuate on annual time scales (Loreau and de Mazancourt 2008).
 
 Methods
 -------
@@ -59,6 +59,20 @@ We built environmentally and demographically stochastic multi-species integral p
 
 To determine the (de)synchronizing effects of demographic stochasticity and species' responses to the environment we simulated communities using the IPM under three scenarios: (1) demographic and environmental stochasticity included, (2) demographic stochasticity removed, and (3) environmental stochasticity removed. We ran simulations for 2,500 time steps and calculated $\phi_r$ using the final 1,000 time steps. For each of our study sites we then calculated $\Delta(\phi)$, the difference between either scenarios 2 or 3 and the unperturbed scenario 1. The sign and magnitude of $\Delta(\phi)$ indicates the (de)synchronizing effect of removing either demographic or environmental stochasticity.
 
+
+Results
+-------
+Synchrony of per capita growth rates among species in each community were in the range ## - ## (fill these in after doing all sites) with an average synchrony of ## (Table 1). If our null expectation had been independent fluctuations, then we would conclude that these communities are far from exhibiting asynchronous dynamics that can stabilize annual productivity. However, based on neutral theory we expected species to fluctuate in perfect synchrony. Under that light, our results show that these communities exhibit weak asynchrony since any asynchrony in temporal dynamics drives $\phi_r$ away from zero. 
+
+
+Given that species are not fluctuating in perfect synchrony, can we conclude that asynchrony in species' responses to the environment is responsible for our observations? To answer this we turn to our simulation results from the IPMs as fit to the observation data. Removing environmental variation consistently increased community asynchrony at each of our study sites (Fig. 2), indicating that these grassland species have similar responses to the environment that synchronize their dynamics. Removing demographic stochasticity, on the other hand, had only modest effects on community synchrony (Fig. 2). Thus, we can conclude, as expected by contemporary theory on species coexistence and community assembly (Loreau and de Mazancourt 2008, HillRisLambers et al. 2013), that these functionally similar perrenial grasses share similar responses to the environment that synchronize their dynamics and, in turn, reduce the temporal stability of biomass production.
+
+Species asynchrony has been heralded as a major stabilizing force in plant communities, one that could buffer the impacts of an increasingly variable climate. However, our results suggest that dominant species in semi-arid grasslands will likely respond to climate fluctuations as a group. This could mean more unstable biomass production in the future if the community does not reorganize. For example, experimental studies show that sub-dominant species can become dominant under novel climate conditions (Hoover et al. 2014, others?). Likewise, if we include a dominant shrub in our analysis of the Idaho dataset it has a stabilizing effect on community biomass because its dynamics are asynchronous to the grasses. Thus, we should anticipate either increasingly unstable biomass production through time as climate extremes become more common, or dramatic community reorganization. In conclusion, our results highlight the importance of not only species diversity, but also functional diversity to ecological stability. 
+
+\newpage
+
+Figures
+-------
 ```{r data_plots, echo=FALSE, fig.height=5, fig.width=8.5, fig.cap="Longterm datasets and the observed per capita growth rates for each year for which contiguous transitions occured.", warning=FALSE, message=FALSE, results='hide', prompt=FALSE}
 ####
 #### 1.1 Kansas ------------------------------------------------------------------
@@ -236,26 +250,6 @@ g_timeseries <- grid.arrange(g_cov_idaho,g_pgr_idaho,g_cov_kansas,g_pgr_kansas, 
 g_timeseries
 ```
 
-Results and Discussion
--------
-Synchrony of per capita growth rates among species in each community were in the range ## - ## with an average synchrony of ## (Table #). If our null expectation had been independent fluctuations, then we would conclude that these communities are far from exhibiting asynchronous dynamics that can stabilize annual productivity. However, based on neutral theory we expected species to fluctuate in perfect synchrony. Under that light our results show that these communities exhibit weak asynchrony since any asynchrony in temporal dynamics drives $\phi_r$ away from zero.  
-
-```{r synchrony_table, results='asis',message=FALSE, comment=NA, echo=FALSE}
-####
-#### Get PGR synchrony
-####
-synch_id_obs <- community.sync(id_obs_gr)
-synch_ks_obs <- community.sync(ks_obs_gr)
-synch_id_obs_e <- get_eta(id_obs_gr)
-synch_ks_obs_e <- get_eta(ks_obs_gr)
-synchrony_df <- data.frame(Site = c("Idaho", "Kansas"),
-                           Synchrony = c(as.numeric(synch_id_obs[1]),
-                                         as.numeric(synch_ks_obs[1])),
-                           MeanPairwiseCorrelation = c(as.numeric(synch_id_obs[2]),
-                                                         as.numeric(synch_ks_obs[2])))
-
-print.xtable(xtable(synchrony_df, caption = "Community synchrony and mean pairwise correlation between species within a community."),type="latex", comment=FALSE, include.rownames=FALSE)
-```
 
 ```{r, echo=FALSE, include=TRUE, fig.height=4, fig.width=5.5, fig.cap="Effect of removing demographic and environmental stochasticity on the synchrony of population dynamics."}
 ## PLOT FROM 3-25-2015
@@ -285,3 +279,23 @@ ggplot(synch_diff)+
 ```
 
 
+\newpage
+
+Tables
+------
+```{r synchrony_table, results='asis',message=FALSE, comment=NA, echo=FALSE}
+####
+#### Get PGR synchrony
+####
+synch_id_obs <- community.sync(id_obs_gr)
+synch_ks_obs <- community.sync(ks_obs_gr)
+synch_id_obs_e <- get_eta(id_obs_gr)
+synch_ks_obs_e <- get_eta(ks_obs_gr)
+synchrony_df <- data.frame(Site = c("Idaho", "Kansas"),
+                           Synchrony = c(as.numeric(synch_id_obs[1]),
+                                         as.numeric(synch_ks_obs[1])),
+                           MeanPairwiseCorrelation = c(as.numeric(synch_id_obs[2]),
+                                                         as.numeric(synch_ks_obs[2])))
+
+print.xtable(xtable(synchrony_df, caption = "Community synchrony and mean pairwise correlation between species within a community."),type="latex", comment=FALSE, include.rownames=FALSE, caption.placement="top")
+```
