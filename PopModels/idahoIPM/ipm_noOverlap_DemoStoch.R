@@ -11,8 +11,8 @@ perturbTemp=F
 # climYrSave=read.csv("climYears.csv")  # use same sequence of years used for observed run
 # randYrSave=read.csv("randYears.csv")
 A=10000 #Area of 100cm x 100cm quadrat
-tlimit=1000 ## number of years to simulate
-burn.in=500    # years to cut before calculations
+tlimit=500 ## number of years to simulate
+burn.in=100    # years to cut before calculations
 sppList=c("ARTR","HECO","POSE","PSSP")
 bigM=c(50,75,50,75)     #Set matrix dimension for each species
 maxSize=c(3000,202,260,225)    # in cm^2: PSSP=225 HECO=202  POSE=260  ARTR=3000  # minSize=0.2  cm^2
@@ -141,15 +141,15 @@ library(msm)
 library(statmod)  
 
 ## combined kernel
-# make.K.values=function(v,u,muWG,muWS, #state variables
-#                        Rpars,rpa,Gpars,Spars,doYear,doSpp){  #growth arguments
-#   f(v,u,Rpars,rpa,doSpp)+rbinom(length(u),1,S(u,muWS,Spars,doYear,doSpp))*G(v,u,muWG,Gpars,doYear,doSpp) 
-# }
-
 make.K.values=function(v,u,muWG,muWS, #state variables
                        Rpars,rpa,Gpars,Spars,doYear,doSpp){  #growth arguments
-  f(v,u,Rpars,rpa,doSpp)+S(u,muWS,Spars,doYear,doSpp)*G(v,u,muWG,Gpars,doYear,doSpp) 
+  rpois(length(u),f(v,u,Rpars,rpa,doSpp))+rbinom(length(u),1,S(u,muWS,Spars,doYear,doSpp))*G(v,u,muWG,Gpars,doYear,doSpp) 
 }
+
+# make.K.values=function(v,u,muWG,muWS, #state variables
+#                        Rpars,rpa,Gpars,Spars,doYear,doSpp){  #growth arguments
+#   f(v,u,Rpars,rpa,doSpp)+S(u,muWS,Spars,doYear,doSpp)*G(v,u,muWG,Gpars,doYear,doSpp) 
+# }
 
 # Function to make iteration matrix based only on mean crowding
 make.K.matrix=function(v,muWG,muWS,Rpars,rpa,Gpars,Spars,doYear,doSpp) {
@@ -219,7 +219,7 @@ matrix.image=function(x,y,A,col=topo.colors(100),...) {
 ## initial population density vector
 nt=v
 for(i in 1:Nspp) nt[[i]][]=0.1
-nt[[1]][]=0
+# nt[[1]][]=0
 new.nt=nt
 ## initial population density vector
 

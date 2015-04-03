@@ -87,9 +87,9 @@ N1.start <- K1
 N2.start <- K2
 # beta12 = 1 #competition coefficient; effect of spp2 on spp1
 # beta21 = 1 #competition coefficient; effect of spp1 on spp2
-beta12 =  0.5
-beta21 = 0
-rho = 0.5
+beta12 =  1
+beta21 = 1
+rho = 0
 run_time = 1500
 burn = run_time/2
 
@@ -101,15 +101,15 @@ model_null <- model(rm1, rm2,
                     evar1, evar2, 
                     beta12, beta21, 
                     run_time, whitevar,
-                    harv=c(rep(0,(run_time-25)), rep(0.35,25)))
+                    harv=rep(0,run_time))
 
-par(mfrow=c(2,1))
-matplot(model_null[(run_time-50):run_time,1:2],type="l", lty=1, col=c("goldenrod2","darkslateblue"),
+par(mfrow=c(1,1))
+matplot(model_null[(run_time-500):run_time,1:2],type="l", lty=1, col=c("goldenrod2","darkslateblue"),
         xlab="time", ylab="biomass")
-matplot(model_null[(run_time-50):run_time,1:2],pch=19, add=TRUE, col=c("goldenrod2","darkslateblue"))
-matplot(model_null[(run_time-50):run_time,4:5],type="l", lty=1, col=c("goldenrod2","darkslateblue"),
-        xlab="time", ylab="per capita growth rate")
-matplot(model_null[(run_time-50):run_time,4:5],pch=19, add=TRUE, col=c("goldenrod2","darkslateblue"))
+matplot(model_null[(run_time-500):run_time,1:2],pch=19, add=TRUE, col=c("goldenrod2","darkslateblue"))
+# matplot(model_null[(run_time-50):run_time,4:5],type="l", lty=1, col=c("goldenrod2","darkslateblue"),
+#         xlab="time", ylab="per capita growth rate")
+# matplot(model_null[(run_time-50):run_time,4:5],pch=19, add=TRUE, col=c("goldenrod2","darkslateblue"))
 
 
 # print(paste("ABUNDANCE:",as.numeric(community.sync(model_null[burn:run_time,1:2])[1])))
