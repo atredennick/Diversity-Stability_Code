@@ -39,10 +39,6 @@ get_eta <- function(y_matrix){
 ```
 
 
-\begin{center}
-Andrew T. Tredennick and ... and ...
-\end{center}
-
 Introduction
 ------------
 Asynchrony in population dynamics among co-occuring plant species stabilizes ecosystem-level properties like annual biomass production (Hector et al. 2010, Loreau and de Mazancourt 2013, de Mazancourt et al. 2013, Hautier et al. 2014). Species-specific responses to environmental conditions, in particular, can stabilize ecosystem properties even as environmental forcings fluctuate through time. Such asynchrony of species dynamics in response to the environment has the potential to buffer ecosystems subjected to an increasingly variable climate. Thus, the extent to which natural communities exhibit asynchronous dynamics determines, in part, their ability to cope with interannual climate extremes that are projected to become more common.
@@ -51,12 +47,14 @@ Theory suggests that community synchrony is driven by a combination of internal 
 
 Given that environmental drivers can either increase or decrease species synchrony, what should be our null expectation of community synchrony? Past studies have assumed the appropriate null is independent species fluctuations (Houlahan PNAS), but this only occurs in the absence of environmental forcing. Species that co-occur but occupy the same trophic level tend to compete for similar abiotic resources, the availability of which varies annually. For example, water is the limiting resource in semi-arid grasslands so annual net primary productivity tends to track annual precipitation (Knapp citation?), regardless of species (CITATION). Taken to the limit, complete similarity among species in terms of resource use and environmentally-mediated growth rates results in communities that exhibit neutral dynamics (Hubbell book). Thus, as suggested by theory (Loreau and de Mazancourt 2008) our neutral expectation is that plant species that co-occur in water-limited grasslands will exhibit perfectly synchronous species dynamics since their growth is strongly driven by precipitation (Knapp again?).
 
-It is impossible to draw inference on the relative contribution of demographic and environmental stochasticity on synchrony based on empirical estimates alone, so our analysis involves two steps.  First, we use exceptional longterm datasets from five North American grasslands (Chu and Adler 2015) to calculate community synchrony. Second, we fit multispecies population models to the data for dominant species to evaluate the relative contribution of species' environmental responses and demographic stochasticity to community synchrony. Sparse data on sub-dominant species constrained model fitting to dominant species that account for ##% - ##% of local plant abundance at their respective sites. Our focus is on temporal trends of per capita growth rates becuase these best reflect the short-term responses of populations to environmental conditions that fluctuate on annual time scales (Loreau and de Mazancourt 2008).
+It is impossible to draw inference on the relative contribution of demographic and environmental stochasticity on synchrony based on empirical estimates alone, so our analysis involves two steps.  First, we will use exceptional longterm datasets from five North American grasslands (Fig. 1; Chu and Adler 2015) to calculate community synchrony. Second, we will fit multispecies population models to the data for dominant species to evaluate the relative contribution of species' environmental responses and demographic stochasticity to community synchrony. Sparse data on sub-dominant species constrained model fitting to dominant species that account for ##% - ##% of local plant abundance at their respective sites. Our focus is on temporal trends of per capita growth rates becuase these best reflect the short-term responses of populations to environmental conditions that fluctuate on annual time scales (Loreau and de Mazancourt 2008).
 
 Methods
 -------
-We built environmentally and demographically stochastic multi-species integral projection models (IPMs) to simulate species' dynamics through time. The IPMs are based on vital rate regressions for survival, growth, and recruitment fit to long-term data (Fig. 1; Chu and Adler 2015). Environmental stochasticity is incorporated by fitting random year effects for the intercept of all regressions and on the plant size effect in the survival and growth regressions. Thus, for a fluctuating environment we can randomly draw year-specific regressions for each time-step of the IPM. Alternatively, to simulate the community in a constant environment we can use the mean regressions for each species. We incorporate demographic stochasticity in the IPM by making survival a binomial process (see Vindenes et al. 2011). We can remove demographic stochaticity by treating survival as a continuous rather than binomial process, as is traditionally done with IPMs (e.g., Rees and Ellner 2014).
+We will build environmentally and demographically stochastic multi-species integral projection models (IPMs) to simulate species' dynamics through time. The IPMs are based on vital rate regressions for survival, growth, and recruitment fit to long-term data (Fig. 2; Chu and Adler 2015)^[Note that in Kansas we have a bad point to remove at year 1963]. Environmental stochasticity is incorporated by fitting random year effects for the intercept of all regressions and on the plant size effect in the survival and growth regressions. Thus, for a fluctuating environment we can randomly draw year-specific regressions for each time-step of the IPM. Alternatively, to simulate the community in a constant environment we can use the mean regressions for each species. We incorporate demographic stochasticity in the IPM by making survival a binomial process (see Vindenes et al. 2011). We can remove demographic stochasticity by treating survival as a continuous rather than binomial process, as is traditionally done with IPMs (e.g., Rees and Ellner 2014).
 
+Preliminary Analysis
+--------------------
 To determine the (de)synchronizing effects of demographic stochasticity and species' responses to the environment we simulated communities using the IPM under three scenarios: (1) demographic and environmental stochasticity included, (2) demographic stochasticity removed, and (3) environmental stochasticity removed. We ran simulations for 2,500 time steps and calculated $\phi_r$ using the final 1,000 time steps. For each of our study sites we then calculated $\Delta(\phi)$, the difference between either scenarios 2 or 3 and the unperturbed scenario 1. The sign and magnitude of $\Delta(\phi)$ indicates the (de)synchronizing effect of removing either demographic or environmental stochasticity.
 
 
@@ -67,12 +65,18 @@ Synchrony of per capita growth rates among species in each community were in the
 
 Given that species are not fluctuating in perfect synchrony, can we conclude that asynchrony in species' responses to the environment is responsible for our observations? To answer this we turn to our simulation results from the IPMs as fit to the observation data. Removing environmental variation consistently increased community asynchrony at each of our study sites (Fig. 2), indicating that these grassland species have similar responses to the environment that synchronize their dynamics. Removing demographic stochasticity, on the other hand, had only modest effects on community synchrony (Fig. 2). Thus, we can conclude, as expected by contemporary theory on species coexistence and community assembly (Loreau and de Mazancourt 2008, HillRisLambers et al. 2013), that these functionally similar perrenial grasses share similar responses to the environment that synchronize their dynamics and, in turn, reduce the temporal stability of biomass production.
 
+Topics for Discussion
+---------------------
 Species asynchrony has been heralded as a major stabilizing force in plant communities, one that could buffer the impacts of an increasingly variable climate. However, our results suggest that dominant species in semi-arid grasslands will likely respond to climate fluctuations as a group. This could mean more unstable biomass production in the future if the community does not reorganize. For example, experimental studies show that sub-dominant species can become dominant under novel climate conditions (Hoover et al. 2014, others?). Likewise, if we include a dominant shrub in our analysis of the Idaho dataset it has a stabilizing effect on community biomass because its dynamics are asynchronous to the grasses. Thus, we should anticipate either increasingly unstable biomass production through time as climate extremes become more common, or dramatic community reorganization. In conclusion, our results highlight the importance of not only species diversity, but also functional diversity to ecological stability. 
 
 \newpage
 
 Figures
 -------
+![Geographic locations and biomes represented by our datasets. Abbreviations: SS = Sage Steppe; NMP = Northern Mixed Prairie; SMP = Southern Mixed Prairie; SD = Sonoran Desert; CD = Chihuahuan Desert. Colors show the distribution of the biomes.](adler_sites.png)
+
+\newpage
+
 ```{r data_plots, echo=FALSE, fig.height=5, fig.width=8.5, fig.cap="Longterm datasets and the observed per capita growth rates for each year for which contiguous transitions occured.", warning=FALSE, message=FALSE, results='hide', prompt=FALSE}
 ####
 #### 1.1 Kansas ------------------------------------------------------------------
@@ -250,8 +254,9 @@ g_timeseries <- grid.arrange(g_cov_idaho,g_pgr_idaho,g_cov_kansas,g_pgr_kansas, 
 g_timeseries
 ```
 
+\newpage
 
-```{r, echo=FALSE, include=TRUE, fig.height=4, fig.width=5.5, fig.cap="Effect of removing demographic and environmental stochasticity on the synchrony of population dynamics."}
+```{r, echo=FALSE, include=TRUE, fig.height=4, fig.width=5.5, fig.cap="Effect of removing demographic and environmental stochasticity on the synchrony of population dynamics. Values below zero indicate that removing the source of stochasticity decreases synchrony (makes population responses more asynchronous). Values above zero indicate that removing the source of stochasticity increases synchrony."}
 ## PLOT FROM 3-25-2015
 library(ggplot2)
 synch_data <- data.frame(site = rep(c("Idaho", "Kansas"), each=3),
