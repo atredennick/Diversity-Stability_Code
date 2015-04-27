@@ -53,6 +53,15 @@ Methods
 -------
 We will build environmentally and demographically stochastic multi-species integral projection models (IPMs) to simulate species' dynamics through time. The IPMs are based on vital rate regressions for survival, growth, and recruitment fit to long-term data (Fig. 2; Chu and Adler 2015)^[Note that in Kansas we have a bad point to remove at year 1963]. Environmental stochasticity is incorporated by fitting random year effects for the intercept of all regressions and on the plant size effect in the survival and growth regressions. Thus, for a fluctuating environment we can randomly draw year-specific regressions for each time-step of the IPM. Alternatively, to simulate the community in a constant environment we can use the mean regressions for each species. We incorporate demographic stochasticity in the IPM by making survival a binomial process (see Vindenes et al. 2011). We can remove demographic stochasticity by treating survival as a continuous rather than binomial process, as is traditionally done with IPMs (e.g., Rees and Ellner 2014).
 
+### Model description
+The multispecies IPM is based on vital rate regressions for survival, growth, and recruitment. In all regressions we allow the intercept and the effect of individual size (area of a focal genet) to vary through time (i.e., a temporal random effect). Thus, if we have 13 years of observations, we fit 13 separate, but hierarchically connected, intercepts and coefficients for the effect of genet size on survival and growth. We include species interactions by estimating the amount of con and heterospecific crowding experienced by a focal genet and including this effect in the model. For example, our model for the survival probability ($S$) of genet $i$ from species $j$ in quadrat group $Q$ from time $t$ to $t+1$ is
+
+$$
+\text{logit}(S_{ijQ,t}) = \gamma^{S}_{j,t} + \phi^{S}_{jQ} + \beta^{S}_{j,t}x_{ij,t} + \omega^{S}_{j}w_{ij,t} + \varepsilon^{S}_{t}
+$$
+
+where $x_{ij,t}$ is the log of genet size, $\gamma^{S}_{j,t}$ is a year-specific intercept, $\beta^{S}_{j,t}$ is the year-specific slope parameter for size, and $\phi^{S}_{jQ}$ is the random effect of quadrat group location. $\omega$ is the effect of crowding and $w_{t,Q}$ is the crowding experienced by the focal individual at time $t$ in quadrat group $Q$.
+
 Preliminary Analysis
 --------------------
 To determine the (de)synchronizing effects of demographic stochasticity and species' responses to the environment we simulated communities using the IPM under three scenarios: (1) demographic and environmental stochasticity included, (2) demographic stochasticity removed, and (3) environmental stochasticity removed. We ran simulations for 2,500 time steps and calculated $\phi_r$ using the final 1,000 time steps. For each of our study sites we then calculated $\Delta(\phi)$, the difference between either scenarios 2 or 3 and the unperturbed scenario 1. The sign and magnitude of $\Delta(\phi)$ indicates the (de)synchronizing effect of removing either demographic or environmental stochasticity.
