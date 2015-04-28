@@ -11,8 +11,8 @@ perturbTemp=F
 # climYrSave=read.csv("climYears.csv")  # use same sequence of years used for observed run
 # randYrSave=read.csv("randYears.csv")
 A=10000 #Area of 100cm x 100cm quadrat
-tlimit=500 ## number of years to simulate
-burn.in=100    # years to cut before calculations
+tlimit=2500 ## number of years to simulate
+burn.in=500    # years to cut before calculations
 sppList=c("ARTR","HECO","POSE","PSSP")
 bigM=c(50,75,50,75)     #Set matrix dimension for each species
 maxSize=c(3000,202,260,225)    # in cm^2: PSSP=225 HECO=202  POSE=260  ARTR=3000  # minSize=0.2  cm^2
@@ -219,7 +219,7 @@ matrix.image=function(x,y,A,col=topo.colors(100),...) {
 ## initial population density vector
 nt=v
 for(i in 1:Nspp) nt[[i]][]=0.1
-# nt[[1]][]=0
+nt[[1]][]=0
 new.nt=nt
 ## initial population density vector
 
@@ -336,9 +336,9 @@ boxplot(as.data.frame(Nsave[(burn.in+1):tlimit,]),ylab="Density",names=sppList,c
 # }
 # example time series
 matplot((burn.in+1):tlimit,100*covSave[(burn.in+1):tlimit,],type="l",col=myCol,
-  xlab="Time",ylab="Cover (%)")
-totalCov <- apply(X = covSave[(burn.in+1):tlimit,], MARGIN = 1, FUN = sum)
-lines((burn.in+1):tlimit, 100*totalCov, lwd=1, lty="dotted", col="grey")
+  xlab="Time",ylab="Cover (%)", lwd=2)
+# totalCov <- apply(X = covSave[(burn.in+1):tlimit,], MARGIN = 1, FUN = sum)
+# lines((burn.in+1):tlimit, 100*totalCov, lwd=1, lty="dotted", col="grey")
 # plot((burn.in+1):tlimit, 100*totalCov, lwd=2, col="black", type="l")
 # cv <- (sd(totalCov)^2)/mean(totalCov)
 # cv
