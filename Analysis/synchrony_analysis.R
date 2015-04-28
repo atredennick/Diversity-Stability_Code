@@ -5,6 +5,9 @@
 #### Andrew Tredennick: atredenn@gmail.com
 #### 2-17-2015
 
+## Note that I exclude years where there is only 1 quadrat observed when
+##  calculating average percent cover.
+
 
 ## Clear the workspace
 rm(list=ls(all=TRUE))
@@ -93,7 +96,9 @@ ks_data<-subset(ks_data,year<68)
 # aggregate the quadrat-level data for average observed cover
 # divide totCover by 100 to convert from m2 to percent cover in 1m2 plot
 ks_agg <- ddply(ks_data, .(year, species), summarise,
-                tot_cover = mean(totCover/100))
+                tot_cover = mean(totCover/100),
+                num_obs = length(totCover))
+ks_agg <- subset(ks_agg, num_obs>1)
 
 # caclulate synchrony and stability
 # first stability (mean/sd; Tilman et al. citation) by population and then community
@@ -134,7 +139,8 @@ ggplot(df2, aes(x=type, y=stab))+
 
 
 # now synchrony of the population fluctuations
-ks_mat <- dcast(ks_agg, formula = year~species)
+ks_mat <- dcast(ks_agg[,c("year", "species", "tot_cover")], formula = year~species)
+ks_mat <- ks_mat[which(complete.cases(ks_mat)==TRUE),]
 synch_ks <- community.sync(ks_mat[2:4]) #Loreau and de Mazancourt 2008 (Am Nat)
 synch_ks_eta <- get_eta(ks_mat[2:4]) #Gross et al. 2014 (Am Nat)
 
