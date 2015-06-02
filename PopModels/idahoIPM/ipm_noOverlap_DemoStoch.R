@@ -11,14 +11,14 @@ perturbTemp=F
 # climYrSave=read.csv("climYears.csv")  # use same sequence of years used for observed run
 # randYrSave=read.csv("randYears.csv")
 A=10000 #Area of 100cm x 100cm quadrat
-tlimit=2500 ## number of years to simulate
-burn.in=500    # years to cut before calculations
+tlimit=1200 ## number of years to simulate
+burn.in=200    # years to cut before calculations
 sppList=c("ARTR","HECO","POSE","PSSP")
 bigM=c(50,75,50,75)     #Set matrix dimension for each species
 maxSize=c(3000,202,260,225)    # in cm^2: PSSP=225 HECO=202  POSE=260  ARTR=3000  # minSize=0.2  cm^2
 Nyrs=22
 doGroup=NA  # NA for spatial avg., values 1-6 for a specific group
-constant=F
+constant=T
 NoOverlap.Inter=F
 compScale=F
 
@@ -138,18 +138,52 @@ size.range=seq(tmp[1],tmp[2],length=50) # range across all possible sizes
 library(boot)
 library(mvtnorm)
 library(msm)
-library(statmod)  
+library(statmod) 
+library(MASS)
 
-## combined kernel
-make.K.values=function(v,u,muWG,muWS, #state variables
-                       Rpars,rpa,Gpars,Spars,doYear,doSpp){  #growth arguments
-  rpois(length(u),f(v,u,Rpars,rpa,doSpp))+rbinom(length(u),1,S(u,muWS,Spars,doYear,doSpp))*G(v,u,muWG,Gpars,doYear,doSpp) 
+
+get_pairs <- function(X, pop_vector){
+  pairs <- expand.grid(X, X)
+#   pairs$tag <- pairs[,1] - pairs[,2]
+  pairs$multi <- pairs[,1]*pairs[,2]*pop_vector
+  return(pairs$multi)
+}  
+get_cov <- function(K){
+  test <- apply(K, MARGIN = 2, FUN = "get_pairs", 
+                pop_vector=(nt[[doSpp]]))
+  mat_dim <- sqrt(dim(test)[1])
+  test <- as.data.frame(test)
+  test$tag <- rep(c(1:mat_dim), each=mat_dim)
+  cov_str <- matrix(ncol=mat_dim, nrow=mat_dim)
+  for(do_i in 1:mat_dim){
+    tmp <- subset(test, tag==do_i) #subset out the focal i
+    rmtmp <- which(colnames(tmp)=="tag") #get rid of id column
+    # Sum over k columns
+    cov_str[do_i,] <- (-h[doSpp]^2) * apply(tmp[,-rmtmp], MARGIN = 2, FUN = "sum")
+  }
+  diag(cov_str) <- 1
+  return(cov_str)
+}
+GenerateMultivariatePoisson<-function(pD, samples, R, lambda){
+  normal_mu=rep(0, pD)
+  normal = mvrnorm(samples, normal_mu, R)
+  pois = normal
+  p=pnorm(normal)
+  for (s in 1:pD){pois[s]=qpois(p[s], lambda[s])}
+  return(pois)
 }
 
+
+## combined kernel
 # make.K.values=function(v,u,muWG,muWS, #state variables
 #                        Rpars,rpa,Gpars,Spars,doYear,doSpp){  #growth arguments
-#   f(v,u,Rpars,rpa,doSpp)+S(u,muWS,Spars,doYear,doSpp)*G(v,u,muWG,Gpars,doYear,doSpp) 
+#   rpois(length(u),f(v,u,Rpars,rpa,doSpp))+rbinom(length(u),1,S(u,muWS,Spars,doYear,doSpp))*G(v,u,muWG,Gpars,doYear,doSpp) 
 # }
+
+make.K.values=function(v,u,muWG,muWS, #state variables
+                       Rpars,rpa,Gpars,Spars,doYear,doSpp){  #growth arguments
+  f(v,u,Rpars,rpa,doSpp)+S(u,muWS,Spars,doYear,doSpp)*G(v,u,muWG,Gpars,doYear,doSpp) 
+}
 
 # Function to make iteration matrix based only on mean crowding
 make.K.matrix=function(v,muWG,muWS,Rpars,rpa,Gpars,Spars,doYear,doSpp) {
@@ -220,6 +254,7 @@ matrix.image=function(x,y,A,col=topo.colors(100),...) {
 nt=v
 for(i in 1:Nspp) nt[[i]][]=0.1
 nt[[1]][]=0
+# nt[[2]][]=0
 new.nt=nt
 ## initial population density vector
 
@@ -299,8 +334,13 @@ for (i in 2:(tlimit)){
     if(cover[doSpp]>0){    
       # make kernels and project
       K.matrix=make.K.matrix(v[[doSpp]],WmatG[[doSpp]],WmatS[[doSpp]],Rpars,rpa,Gpars,Spars,doYear,doSpp)	
+      covmat <- get_cov(K=K.matrix)
+      new.nt[[doSpp]] <- GenerateMultivariatePoisson(pD = length(nt[[doSpp]]),
+                                  samples = 1,
+                                  R = covmat,
+                                  lambda = K.matrix%*%nt[[doSpp]])
 #       new.nt[[doSpp]]=rpois(length(nt[[doSpp]]),K.matrix%*%nt[[doSpp]]) 
-      new.nt[[doSpp]]=K.matrix%*%nt[[doSpp]]
+#       new.nt[[doSpp]]=K.matrix%*%nt[[doSpp]]
       sizeSave[[doSpp]][,i]=new.nt[[doSpp]]/sum(new.nt[[doSpp]])  
     }    
   } # next species
