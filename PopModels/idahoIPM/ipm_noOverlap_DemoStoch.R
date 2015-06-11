@@ -11,14 +11,14 @@ perturbTemp=F
 # climYrSave=read.csv("climYears.csv")  # use same sequence of years used for observed run
 # randYrSave=read.csv("randYears.csv")
 A=10000 #Area of 100cm x 100cm quadrat
-tlimit=1200 ## number of years to simulate
-burn.in=200    # years to cut before calculations
+tlimit=200 ## number of years to simulate
+burn.in=0    # years to cut before calculations
 sppList=c("ARTR","HECO","POSE","PSSP")
 bigM=c(50,75,50,75)     #Set matrix dimension for each species
 maxSize=c(3000,202,260,225)    # in cm^2: PSSP=225 HECO=202  POSE=260  ARTR=3000  # minSize=0.2  cm^2
 Nyrs=22
 doGroup=NA  # NA for spatial avg., values 1-6 for a specific group
-constant=T
+constant=F
 NoOverlap.Inter=F
 compScale=F
 
@@ -185,6 +185,29 @@ make.K.values=function(v,u,muWG,muWS, #state variables
   f(v,u,Rpars,rpa,doSpp)+S(u,muWS,Spars,doYear,doSpp)*G(v,u,muWG,Gpars,doYear,doSpp) 
 }
 
+make.R.values=function(v,u, #state variables
+                       Rpars,rpa,doYear,doSpp){
+  f(v,u,Rpars,rpa,doSpp)
+}
+
+make.P.values <- function(v,u,muWG,muWS, #state variables
+                          Gpars,Spars,doYear,doSpp){  #growth arguments
+  S(u,muWS,Spars,doYear,doSpp)*G(v,u,muWG,Gpars,doYear,doSpp) 
+}
+
+make.P.matrix <- function(v,muWG,muWS,Gpars,Spars,doYear,doSpp) {
+  muWG=expandW(v,v,muWG)
+  muWS=expandW(v,v,muWS)
+  
+  P.matrix=outer(v,v,make.P.values,muWG,muWS,Gpars,Spars,doYear,doSpp)
+  return(h[doSpp]*P.matrix)
+} 
+
+make.R.matrix=function(v,Rpars,rpa,doYear,doSpp) {
+  R.matrix=outer(v,v,make.R.values,Rpars,rpa,doYear,doSpp)
+  return(h[doSpp]*R.matrix)
+}
+
 # Function to make iteration matrix based only on mean crowding
 make.K.matrix=function(v,muWG,muWS,Rpars,rpa,Gpars,Spars,doYear,doSpp) {
   muWG=expandW(v,v,muWG)
@@ -333,12 +356,22 @@ for (i in 2:(tlimit)){
   for(doSpp in 1:Nspp){  
     if(cover[doSpp]>0){    
       # make kernels and project
-      K.matrix=make.K.matrix(v[[doSpp]],WmatG[[doSpp]],WmatS[[doSpp]],Rpars,rpa,Gpars,Spars,doYear,doSpp)	
-      covmat <- get_cov(K=K.matrix)
-      new.nt[[doSpp]] <- GenerateMultivariatePoisson(pD = length(nt[[doSpp]]),
-                                  samples = 1,
-                                  R = covmat,
-                                  lambda = K.matrix%*%nt[[doSpp]])
+      P.matrix <- make.P.matrix(v[[doSpp]],WmatG[[doSpp]],WmatS[[doSpp]],Gpars,Spars,doYear,doSpp)  
+      R.matrix <- make.R.matrix(v[[doSpp]],Rpars,rpa,doYear,doSpp)  
+      newK <- P.matrix+R.matrix
+#       K.matrix=make.K.matrix(v[[doSpp]],WmatG[[doSpp]],WmatS[[doSpp]],Rpars,rpa,Gpars,Spars,doYear,doSpp)  
+      covmat <- get_cov(K=P.matrix)
+      pCont <- GenerateMultivariatePoisson(pD = length(nt[[doSpp]]),
+                                                     samples = 1,
+                                                     R = covmat,
+                                                     lambda = P.matrix%*%nt[[doSpp]])
+      rCont <- rpois(length(nt[[doSpp]]),R.matrix%*%nt[[doSpp]])
+      new.nt[[doSpp]] <- pCont+rCont
+      
+#       new.nt[[doSpp]] <- GenerateMultivariatePoisson(pD = length(nt[[doSpp]]),
+#                                   samples = 1,
+#                                   R = covmat,
+#                                   lambda = K.matrix%*%nt[[doSpp]])
 #       new.nt[[doSpp]]=rpois(length(nt[[doSpp]]),K.matrix%*%nt[[doSpp]]) 
 #       new.nt[[doSpp]]=K.matrix%*%nt[[doSpp]]
       sizeSave[[doSpp]][,i]=new.nt[[doSpp]]/sum(new.nt[[doSpp]])  
